@@ -1,4 +1,0 @@
-main is com.meidusa.venus.bus.ServiceBusApplication from venus
-
-[venus]
-load ${project.home}/lib/*.jar
