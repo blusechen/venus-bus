@@ -299,25 +299,4 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 	 */
 	protected abstract Map<String,List<Tuple<Range, BackendConnectionPool>>> load() throws Exception;
 			
-	public static Range getVersionRange(String version){
-		Range versionRange = null;
-		if(!StringUtil.isEmpty(version)){
-			version = version.trim();
-			String[] tmps = StringUtils.split(version, "{}[], ");
-			int[] rages = new int[tmps.length];
-			for(int i=0;i<tmps.length; i++){
-				rages[i] = Integer.valueOf(tmps[i]);
-			}
-			
-			if(version.startsWith("[")){
-				versionRange = new BetweenRange(rages);
-			}else{
-				versionRange = new ArrayRange(rages);
-			}
-			return versionRange;
-		}else{
-			return new DefaultRange();
-		}
-	}
-
 }

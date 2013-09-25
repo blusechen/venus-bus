@@ -23,6 +23,7 @@ import com.meidusa.venus.digester.DigesterRuleParser;
 import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.util.DefaultRange;
 import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.RangeUtil;
 import com.meidusa.venus.bus.AbstractRemoteServiceManager;
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
 import com.meidusa.toolkit.common.bean.config.ConfigurationException;
@@ -135,7 +136,7 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager{
 			
 			try{
 				Tuple<Range,BackendConnectionPool> tuple = new Tuple<Range,BackendConnectionPool>();
-				tuple.left = getVersionRange(config.getVersion());
+				tuple.left = RangeUtil.getVersionRange(config.getVersion());
 				if(tuple.left == null){
 					tuple.left = new DefaultRange();
 				}
