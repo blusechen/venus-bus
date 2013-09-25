@@ -8,13 +8,13 @@ import java.util.Map;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.venus.bus.AbstractRemoteServiceManager;
-import com.meidusa.venus.client.ServiceFactory;
 import com.meidusa.venus.client.simple.SimpleServiceFactory;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.service.registry.ServiceRegistry;
 import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.RangeUtil;
 
 /**
  * 通过注册中心进行登记的远程服务管理
@@ -95,7 +95,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 
 			String[] ips = definition.getIpAddress().toArray(new String[]{});
 			BackendConnectionPool pool = this.createVirtualPool(ips, authenticator);
-			Range range = getVersionRange(definition.getVersionRange());
+			Range range = RangeUtil.getVersionRange(definition.getVersionRange());
 			Tuple<Range, BackendConnectionPool> tuple = new Tuple<Range, BackendConnectionPool>(range,pool);
 			l.add(tuple);
 		}
