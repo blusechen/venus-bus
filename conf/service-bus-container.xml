@@ -24,17 +24,16 @@
     <bean class="com.meidusa.venus.bus.VenusConnectionAcceptor" init-method="start" destroy-method="shutdown">
     	<property name="name" value="Service socket Server"/>
     	<property name="port" value="${venus.server.binding.port}"/>
-    	<property name="connectionFactory" ref="hsbFrontendConnectionFactory"/>
+    	<property name="connectionFactory" ref="busFrontendConnectionFactory"/>
     	<property name="observer" ref="clientConnectionObserver"/>
     	<property name="processors" ref="connectionManagerFactoryBean"/>
-    	<property name="processorSize"><value>4</value></property>
     </bean>
     
     <bean id="clientConnectionObserver" class="com.meidusa.venus.bus.handler.ClientConnectionObserver"/>
     
-    <bean id="hsbFrontendConnectionFactory" class="com.meidusa.venus.bus.network.HsbFrontendConnectionFactory">
+    <bean id="busFrontendConnectionFactory" class="com.meidusa.venus.bus.network.BusFrontendConnectionFactory">
 		<property name="messageHandler">
-			<bean id="messageHandler" class="com.meidusa.venus.bus.handler.HsbFrontendMessageHandler">
+			<bean id="messageHandler" class="com.meidusa.venus.bus.handler.BusFrontendMessageHandler">
 				<property name="remoteManager" ref="remoteManager"/>
 			</bean>
 		</property>
@@ -43,24 +42,8 @@
 		</property>
 	</bean>
 	
-	<bean id="backendMessageHandler" class="com.meidusa.venus.bus.handler.HsbBackendMessageHandler">
+	<bean id="backendMessageHandler" class="com.meidusa.venus.bus.handler.BusBackendMessageHandler">
 		<property name="clientConnectionObserver" ref="clientConnectionObserver"/>
-	</bean>
-			
-	<bean id="remoteManager" class="com.meidusa.venus.bus.xml.XmlFileServiceRemoteManager" init-method="init">
-		<property name="configFiles">
-			<list>
-				<value>file:${project.home}/conf/VenusRemoteConfig.xml</value>
-			</list>
-		</property>
-		<property name="messageHandler" ref="backendMessageHandler"/>
-		<property name="connector">
-			<bean class="com.meidusa.venus.bus.VenusConnectionConnector" init-method="start">
-				<constructor-arg><value>Backend connection Manager</value></constructor-arg>
-				<property name="processors" ref="connectionManagerFactoryBean"/>
-				<property name="processorSize"><value>4</value></property>
-			</bean>
-		</property>	
 	</bean>
 	
 	<bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
@@ -68,7 +51,46 @@
     	<property name="username" value="venus"/>
     	<property name="password" value="venus"/>
     </bean>
-    <!-- 
-	<bean id="authenticator" class="com.meidusa.venus.client.authenticate.DummyAuthenticator"/>
+    
+    <bean id="venusExceptionFactory" class="com.meidusa.venus.exception.XmlVenusExceptionFactory" init-method="init">
+		<property name="configFiles">
+			<list>
+				<value>classpath:com/meidusa/venus/exception/VenusSystemException.xml</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="abstractRemoteManager" abstract="true">
+		<property name="messageHandler" ref="backendMessageHandler"/>
+		<property name="connector">
+			<bean class="com.meidusa.venus.bus.VenusConnectionConnector" init-method="start">
+				<constructor-arg><value>Backend connection Manager</value></constructor-arg>
+				<property name="processors" ref="connectionManagerFactoryBean"/>
+			</bean>
+		</property>	
+	</bean>
+	
+	<!-- 
+		基于xml配置的服务加载方式
 	 -->
+	<bean id="remoteManager" class="com.meidusa.venus.bus.xml.XmlFileRemoteServiceManager" init-method="init" parent="abstractRemoteManager">
+		<property name="configFiles">
+			<list>
+				<value>file:${project.home}/conf/VenusRemoteConfig.xml</value>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 
+		基于服务注册中心的服务加载方式
+	 -->
+	
+	<!-- <bean id="remoteManager" class="com.meidusa.venus.bus.registry.RegistryRemoteServiceManager" init-method="init" parent="abstractRemoteManager">
+		<property name="host" value="127.0.0.1"/>
+		<property name="port" value="17000"/>
+	</bean> -->
+	
+    
+	<bean id="authenticator" class="com.meidusa.venus.client.authenticate.DummyAuthenticator"/>
+	
 </beans>

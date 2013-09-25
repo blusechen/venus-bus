@@ -4,6 +4,11 @@ import com.meidusa.toolkit.common.runtime.Application;
 import com.meidusa.toolkit.common.runtime.ApplicationConfig;
 import com.meidusa.toolkit.common.runtime.DefaultApplication;
 
+/**
+ * Æô¶¯ BUSµÄ Application
+ * @author structchen
+ *
+ */
 public class ServiceBusApplication extends DefaultApplication<ServiceBusApplicationConfig> {
 	private ServiceBusApplicationConfig config = new ServiceBusApplicationConfig();
 	

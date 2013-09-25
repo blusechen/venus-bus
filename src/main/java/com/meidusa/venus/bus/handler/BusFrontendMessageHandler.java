@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.meidusa.venus.bus.network.HsbBackendConnection;
-import com.meidusa.venus.bus.network.HsbFrontendConnection;
+import com.meidusa.venus.bus.network.BusBackendConnection;
+import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.bus.ServiceRemoteManager;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
@@ -24,8 +24,13 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
 
-public class HsbFrontendMessageHandler implements MessageHandler<HsbFrontendConnection> {
-    private static Logger logger = Logger.getLogger(HsbFrontendMessageHandler.class);
+/**
+ * 前端消息处理,负责接收服务请求
+ * @author structchen
+ *
+ */
+public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> {
+    private static Logger logger = Logger.getLogger(BusFrontendMessageHandler.class);
 	
     private ServiceRemoteManager remoteManager;
     
@@ -42,7 +47,7 @@ public class HsbFrontendMessageHandler implements MessageHandler<HsbFrontendConn
 	
 	//Map<String,List<Tuple<Range,ObjectPool>>> serviceMap = new HashMap<String,List<Tuple<Range,ObjectPool>>>();
 	@Override
-	public void handle(HsbFrontendConnection conn, final byte[] message) {
+	public void handle(BusFrontendConnection conn, final byte[] message) {
 		int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_PING:
@@ -88,7 +93,7 @@ public class HsbFrontendMessageHandler implements MessageHandler<HsbFrontendConn
 		                final String apiName = apiPacket.apiName;
 		                int index = apiName.lastIndexOf(".");
 		                String serviceName = apiName.substring(0, index);
-		                String methodName = apiName.substring(index + 1);
+		                //String methodName = apiName.substring(index + 1);
 		                List<Tuple<Range,BackendConnectionPool>> list = remoteManager.getRemoteList(serviceName);
 		                
 		                //service not found
@@ -105,9 +110,9 @@ public class HsbFrontendMessageHandler implements MessageHandler<HsbFrontendConn
 		                for(Tuple<Range,BackendConnectionPool> tuple : list){
 		                	
 		                	if(tuple.left.contains(apiPacket.serviceVersion)){
-		                		HsbBackendConnection remoteConn = null;
+		                		BusBackendConnection remoteConn = null;
 		                		try{
-		                			remoteConn = (HsbBackendConnection)tuple.right.borrowObject();
+		                			remoteConn = (BusBackendConnection)tuple.right.borrowObject();
 		                			routerPacket.backendRequestID = remoteConn.getNextRequestID();
 		                			remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.connectionID, routerPacket.frontendRequestID);
 		                			remoteConn.write(routerPacket.toByteBuffer());

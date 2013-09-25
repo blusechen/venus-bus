@@ -10,8 +10,8 @@ import org.apache.log4j.Logger;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.venus.bus.network.HsbBackendConnection;
-import com.meidusa.venus.bus.network.HsbFrontendConnection;
+import com.meidusa.venus.bus.network.BusBackendConnection;
+import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.bus.ServiceRemoteManager;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
@@ -22,11 +22,21 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.util.Range;
 
+/**
+ * 消息重试处理,诸如:后端服务不可用的 时候,将有默认3次尝试请求.每次间隔1秒的机制,重新对虚拟连接池发起请求,如果都失败将返回异常数据包给客户端.
+ * @author structchen
+ *
+ */
 public class RetryMessageHandler {
-	private static Logger logger = Logger.getLogger(HsbFrontendMessageHandler.class);
+	private static Logger logger = Logger.getLogger(BusFrontendMessageHandler.class);
 	private static final int MAX_RETRY_TIMES = 3; 
 	private int maxRetryTimes = MAX_RETRY_TIMES;
 	
+	/**
+	 * 延迟对象接口
+	 * @author structchen
+	 *
+	 */
 	static class DelayedObject implements Delayed{
 		private long                          time;
         /** Sequence number to break ties FIFO */
@@ -63,11 +73,16 @@ public class RetryMessageHandler {
 
 	}
 	
+	/**
+	 * 路由消息的延迟队列对象实现
+	 * @author structchen
+	 *
+	 */
 	 static class DelayedRouterMessage extends DelayedObject{
-		private HsbFrontendConnection conn;
+		private BusFrontendConnection conn;
 		private VenusRouterPacket packet;
 		private int times = 0;
-		public DelayedRouterMessage(long nsTime, TimeUnit timeUnit,HsbFrontendConnection conn,VenusRouterPacket packet) {
+		public DelayedRouterMessage(long nsTime, TimeUnit timeUnit,BusFrontendConnection conn,VenusRouterPacket packet) {
 			super(nsTime, timeUnit);
 			this.conn = conn;
 			this.packet = packet;
@@ -75,7 +90,11 @@ public class RetryMessageHandler {
 		 
 	 }
 	
+	 /**
+	  * 存放重试消息的队列
+	  */
 	private BlockingQueue<DelayedRouterMessage> retryQueue = new DelayQueue<DelayedRouterMessage>();
+	
 	private ServiceRemoteManager remoteManager;
     
 	public ServiceRemoteManager getRemoteManager() {
@@ -95,7 +114,7 @@ public class RetryMessageHandler {
 	}
 
 	public void handle(DelayedRouterMessage message) {
-		HsbFrontendConnection conn = message.conn;
+		BusFrontendConnection conn = message.conn;
 		VenusRouterPacket routerPacket = message.packet;
 		SerializeServiceRequestPacket request = null;
     	try{
@@ -122,10 +141,13 @@ public class RetryMessageHandler {
             
             for(Tuple<Range,BackendConnectionPool> tuple : list){
             	
+            	/**
+            	 * 检测版本是否兼容
+            	 */
             	if(tuple.left.contains(apiPacket.serviceVersion)){
-            		HsbBackendConnection remoteConn = null;
+            		BusBackendConnection remoteConn = null;
             		try{
-            			remoteConn = (HsbBackendConnection)tuple.right.borrowObject();
+            			remoteConn = (BusBackendConnection)tuple.right.borrowObject();
             			long remoteRequestID = remoteConn.getNextRequestID();
             			routerPacket.backendRequestID = remoteRequestID;
             			remoteConn.addRequest(remoteRequestID, routerPacket.connectionID, routerPacket.frontendRequestID);
@@ -163,6 +185,7 @@ public class RetryMessageHandler {
         	conn.write(error.toByteBuffer());
 
     	}catch(Throwable e){
+    		//遇到问题则返回错误数据包
     		ErrorPacket error = new ErrorPacket();
     		AbstractServicePacket.copyHead(request, error);
         	error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
@@ -173,14 +196,25 @@ public class RetryMessageHandler {
     	}
 	}
 	
-	public void addRetry(HsbFrontendConnection conn,VenusRouterPacket data){
+	/**
+	 * 增加一个重试路由数据包
+	 * @param conn
+	 * @param data
+	 */
+	public void addRetry(BusFrontendConnection conn,VenusRouterPacket data){
 		if(data != null){
 			retryQueue.offer(new DelayedRouterMessage(1,TimeUnit.SECONDS,conn, data));
 		}
 	}
 	
 	public void init(){
+		/**
+		 * 采用一个线程来负责处理重新队列
+		 */
 		new Thread(){
+			{
+				this.setDaemon(true);
+			}
 			public void run(){
 				while(true){
 					try {

@@ -17,7 +17,12 @@ import java.util.HashMap;
 import java.util.Map;
 import com.meidusa.venus.client.xml.bean.Remote;
 
-public class HsbVenusClient {
+/**
+ * 
+ * @author structchen
+ *
+ */
+public class BusVenusClient {
 	private Map<String,RemoteServiceConfig> serviceMap = new HashMap<String,RemoteServiceConfig>();
 	private Map<String,Remote> remoteMap = new HashMap<String,Remote>();
 	public void addService(RemoteServiceConfig config){

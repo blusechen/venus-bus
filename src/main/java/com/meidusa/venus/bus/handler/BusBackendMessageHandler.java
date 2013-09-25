@@ -1,17 +1,18 @@
 package com.meidusa.venus.bus.handler;
 
-import com.meidusa.venus.bus.network.HsbBackendConnection;
-import com.meidusa.venus.bus.network.HsbFrontendConnection;
-import com.meidusa.venus.exception.VenusExceptionCodeConstant;
+import com.meidusa.toolkit.net.MessageHandler;
+import com.meidusa.venus.bus.network.BusBackendConnection;
+import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.AbstractVenusPacket;
-import com.meidusa.venus.io.packet.ErrorPacket;
-import com.meidusa.venus.io.packet.ServiceResponsePacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
-import com.meidusa.venus.io.packet.VenusServiceHeaderPacket;
-import com.meidusa.toolkit.net.MessageHandler;
 
-public class HsbBackendMessageHandler implements MessageHandler<HsbBackendConnection> {
+/**
+ * 后端服务的 消息处理
+ * @author structchen
+ *
+ */
+public class BusBackendMessageHandler implements MessageHandler<BusBackendConnection> {
 	private ClientConnectionObserver clientConnectionObserver;
 	public ClientConnectionObserver getClientConnectionObserver() {
 		return clientConnectionObserver;
@@ -22,11 +23,11 @@ public class HsbBackendMessageHandler implements MessageHandler<HsbBackendConnec
 	}
 
 	@Override
-	public void handle(HsbBackendConnection conn, byte[] message) {
+	public void handle(BusBackendConnection conn, byte[] message) {
 		int type = AbstractServicePacket.getType(message);
 		if(type == AbstractVenusPacket.PACKET_TYPE_ROUTER){
 			
-			HsbFrontendConnection  clientConn = (HsbFrontendConnection)clientConnectionObserver.getConnection(VenusRouterPacket.getConnectionSequenceID(message));
+			BusFrontendConnection  clientConn = (BusFrontendConnection)clientConnectionObserver.getConnection(VenusRouterPacket.getConnectionSequenceID(message));
 			conn.removeRequest(VenusRouterPacket.getRemoteRequestID(message));
 			byte[] response = VenusRouterPacket.getData(message);
 			if(clientConn != null){

@@ -3,10 +3,16 @@ package com.meidusa.venus.bus.handler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.meidusa.venus.backend.network.VenusFrontendConnection;
+import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.ConnectionObserver;
 
+/**
+ * Client Connection Ovserver
+ * 观察连接创建,关闭以及异常
+ * @author structchen
+ *
+ */
 public class ClientConnectionObserver implements ConnectionObserver {
 	private Map<Long,Connection> clientMap = new ConcurrentHashMap<Long,Connection>(); 
 	
@@ -32,6 +38,11 @@ public class ClientConnectionObserver implements ConnectionObserver {
 		}
 	}
 
+	/**
+	 * 根据 SequenceID 获得一个 连接 
+	 * @param id
+	 * @return
+	 */
 	public Connection getConnection(long id){
 		return clientMap.get(id);
 	}

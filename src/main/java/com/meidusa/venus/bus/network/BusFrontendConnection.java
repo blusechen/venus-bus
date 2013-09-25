@@ -5,15 +5,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.meidusa.venus.backend.network.VenusFrontendConnection;
 import com.meidusa.venus.bus.handler.RetryMessageHandler;
+import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 
-public class HsbFrontendConnection extends VenusFrontendConnection {
+/**
+ * 负责Bus前端连接
+ * @author structchen
+ *
+ */
+public class BusFrontendConnection extends VenusFrontendConnection {
 	private AtomicLong requestSeq = new AtomicLong();
 	private RetryMessageHandler retryHandler;
 	
-	public HsbFrontendConnection(SocketChannel channel) {
+	public BusFrontendConnection(SocketChannel channel) {
 		super(channel);
 	}
 	

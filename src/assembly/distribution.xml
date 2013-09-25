@@ -10,8 +10,19 @@
 		<fileSet>
 			<directory>${basedir}/bin</directory>
 			<fileMode>755</fileMode>
+			<lineEnding>dos</lineEnding>
+			<includes>
+				<include>*.bat</include>
+			</includes>
+			<outputDirectory>/bin</outputDirectory>
+		</fileSet>
+		<fileSet>
+			<directory>${basedir}/bin</directory>
+			<fileMode>755</fileMode>
+			<lineEnding>unix</lineEnding>
 			<excludes>
 				<exclude>*.jar</exclude>
+				<exclude>*.bat</exclude>
 			</excludes>
 			<outputDirectory>/bin</outputDirectory>
 		</fileSet>
@@ -37,6 +48,7 @@
 			<directory>${project.home}</directory>
 			<includes>
 				<include>application.properties</include>
+				<include>jvm.properties</include>
 			</includes>
 			<outputDirectory>.</outputDirectory>
 		</fileSet>

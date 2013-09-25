@@ -5,7 +5,12 @@ import java.io.UnsupportedEncodingException;
 import com.meidusa.venus.io.packet.AbstractServiceRequestPacket;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
 
-public class HsbServiceRequestPacket extends AbstractServiceRequestPacket {
+/**
+ * 
+ * @author structchen
+ *
+ */
+public class BusServiceRequestPacket extends AbstractServiceRequestPacket {
 
 	private static final long serialVersionUID = 1L;
 	private byte[] parameterBytes; 

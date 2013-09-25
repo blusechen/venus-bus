@@ -1,6 +1,10 @@
 package com.meidusa.venus.bus.config.bean;
 
-
+/**
+ * 
+ * @author structchen
+ *
+ */
 public class RemoteServiceConfig {
 	private String remote;
 	private String serviceName;

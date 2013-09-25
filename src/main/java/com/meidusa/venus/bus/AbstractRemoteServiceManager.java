@@ -3,6 +3,7 @@ package com.meidusa.venus.bus;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,12 +21,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
-import com.meidusa.venus.bus.config.bean.HsbVenusConfig;
+import com.meidusa.venus.bus.config.bean.BusConfig;
 import com.meidusa.venus.bus.config.bean.RemoteServiceConfig;
-import com.meidusa.venus.bus.network.HsbBackendConnectionFactory;
-import com.meidusa.venus.client.xml.bean.FactoryConfig;
-import com.meidusa.venus.client.xml.bean.PoolConfig;
-import com.meidusa.venus.client.xml.bean.Remote;
+import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
+import com.meidusa.venus.bus.xml.bean.FactoryConfig;
+import com.meidusa.venus.bus.xml.bean.Remote;
+import com.meidusa.venus.io.authenticate.Authenticator;
+import com.meidusa.venus.io.packet.PacketConstant;
 import com.meidusa.venus.util.ArrayRange;
 import com.meidusa.venus.util.BetweenRange;
 import com.meidusa.venus.util.DefaultRange;
@@ -34,7 +36,6 @@ import com.meidusa.venus.util.VenusBeanUtilsBean;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
-import com.meidusa.toolkit.common.bean.config.ConfigurationException;
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.common.heartbeat.HeartbeatDelayed;
@@ -49,15 +50,47 @@ import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
 import com.meidusa.toolkit.net.PollingBackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
 
-public abstract class AbstractServiceRemoteManager implements ServiceRemoteManager ,Initialisable ,BeanFactoryAware{
-	private int defaultPoolSize = 8;
-	private BeanContext beanContext;
-	private BeanFactory beanFactory;
-	private MessageHandler messageHandler;
-	private Map<String,List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String,List<Tuple<Range, BackendConnectionPool>>>();
-	private ConnectionConnector connector;
-	private Map<String,BackendConnectionPool> poolMap = new HashMap<String,BackendConnectionPool>();
-	private Map<String,BackendConnectionPool> realPoolMap = new HashMap<String,BackendConnectionPool>();
+/**
+ * 服务管理器
+ * @author structchen
+ *
+ */
+public abstract class AbstractRemoteServiceManager implements ServiceRemoteManager ,Initialisable ,BeanFactoryAware{
+	
+	/**
+	 * 后端服务默认的连接池大小
+	 */
+	protected int defaultPoolSize = Remote.DEFAULT_POOL_SIZE;
+	protected BeanContext beanContext;
+	protected BeanFactory beanFactory;
+	
+	/**
+	 * factory 创建connection 之后，作为connection相关的消息处理器
+	 */
+	protected MessageHandler messageHandler;
+	
+	/**
+	 * 存放 后端的服务连接池
+	 * key=service Name
+	 * 
+	 */
+	protected Map<String,List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String,List<Tuple<Range, BackendConnectionPool>>>();
+	
+	/**
+	 * Selector Connector
+	 */
+	protected ConnectionConnector connector;
+	
+	/**
+	 * 实际物理服务的连接池， key是ip:port
+	 */
+	protected Map<String,BackendConnectionPool> realPoolMap = new HashMap<String,BackendConnectionPool>();
+	
+	/**
+	 * 实际物理服务的连接池， key是ip:port
+	 */
+	protected List<BackendConnectionPool> virtualPoolMap = new ArrayList<BackendConnectionPool>();
+	
 	public ConnectionConnector getConnector() {
 		return connector;
 	}
@@ -90,6 +123,10 @@ public abstract class AbstractServiceRemoteManager implements ServiceRemoteManag
 	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
 		this.beanFactory = beanFactory; 
 	}
+	
+	/**
+	 * 初始化 service manager
+	 */
 	public void init() throws InitialisationException {
 		beanContext = new BeanContext(){
 			public Object getBean(String beanName) {
@@ -152,100 +189,61 @@ public abstract class AbstractServiceRemoteManager implements ServiceRemoteManag
 		}
 	}
 	
-	private Map<String,BackendConnectionPool> initRemoteMap(Map<String,Remote> remots) throws  Exception{
-		Map<String,BackendConnectionPool> poolMap = new HashMap<String,BackendConnectionPool>();
-		for(Map.Entry<String, Remote> entry: remots.entrySet()){
-			Remote remote = entry.getValue();
-			FactoryConfig factoryConfig = null;
-			PoolConfig poolConfig = null;
-			factoryConfig = remote.getFactory();
-			poolConfig = remote.getPool();
-			
-			String ipAddress = factoryConfig != null ?factoryConfig.getIpAddressList(): factoryConfig.getIpAddressList();
-			if(!StringUtil.isEmpty(ipAddress)){
-				String ipList[] = StringUtil.split(ipAddress ,", ");
-				
-				BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
-				
-				for(int i=0;i<ipList.length;i++){
-					HsbBackendConnectionFactory nioFactory = new HsbBackendConnectionFactory();
-					if(realPoolMap.get(ipList[i]) != null){
-						nioPools[i] = realPoolMap.get(ipList[i]);
-						continue;
-					}
-					
-					if(factoryConfig != null){
-						BeanUtils.copyProperties(nioFactory, factoryConfig);
-					}
-					
-					String temp[] = StringUtil.split(ipList[i],":");
-					if(temp.length>1){
-						nioFactory.setHost(temp[0]);
-						nioFactory.setPort(Integer.valueOf(temp[1]));
-					}else{
-						nioFactory.setHost(temp[0]);
-						nioFactory.setPort(16800);
-					}
-					
-					if(remote.getAuthenticator() != null){
-						nioFactory.setAuthenticator(remote.getAuthenticator());
-					}
-					
-					nioFactory.setConnector(this.getConnector());
-					nioFactory.setMessageHandler(getMessageHandler());
-					
-					nioPools[i] = new PollingBackendConnectionPool(ipList[i],nioFactory,poolConfig.getMaxActive());
-					if(poolConfig != null){
-						BeanUtils.copyProperties(nioPools[i], poolConfig);
-					}
-					nioPools[i].init();
-				}
-				String poolName = remote.getName();
-				
-				MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(poolName,MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN,nioPools);
-				
-				nioPool.init();
-				poolMap.put(remote.getName(),nioPool);
-				
-			}
-		}
-		
-		return poolMap;
+	protected void removeBackendConnectionPool(String address){
+		BackendConnectionPool pool = realPoolMap.remove(address);
+		pool.close();
 	}
 	
-	private BackendConnectionPool createPoolFromAddressList(String ipAddressList){
-		String ipList[] = StringUtil.split(ipAddressList ,", ");
+	/**
+	 * 创建多个真实地址连接的虚拟连接池
+	 * @param ipList
+	 * @return
+	 */
+	protected BackendConnectionPool createVirtualPool(String ipList[],Authenticator authenticator){
 		BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
+		
 		BackendConnectionPool pool = null;
 		for(int i=0;i<ipList.length;i++){
-			HsbBackendConnectionFactory nioFactory = new HsbBackendConnectionFactory();
 			if(realPoolMap.get(ipList[i]) != null){
 				nioPools[i] = realPoolMap.get(ipList[i]);
 				continue;
 			}
-			
-			String temp[] = StringUtil.split(ipList[i],":");
-			if(temp.length>1){
-				nioFactory.setHost(temp[0]);
-				nioFactory.setPort(Integer.valueOf(temp[1]));
-			}else{
-				nioFactory.setHost(temp[0]);
-				nioFactory.setPort(16800);
-			}
-			
-			nioFactory.setConnector(this.getConnector());
-			nioFactory.setMessageHandler(getMessageHandler());
-			
-			nioPools[i] = new PollingBackendConnectionPool(ipList[i],nioFactory,defaultPoolSize);
-			nioPools[i].init();
-			realPoolMap.put(ipList[i], nioPools[i]);
+			nioPools[i] = createRealPool(ipList[i],authenticator);
 		}
 		
-		String poolName = "pool-"+ipAddressList;
-		
+		String poolName = "pool-"+Arrays.toString(ipList);
 		pool = new MultipleLoadBalanceBackendConnectionPool(poolName,MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN,nioPools);
 		pool.init();
+		virtualPoolMap.add(pool);
+		return pool;
+	}
+	
+	/**
+	 * 创建与真实地址连接的连接池
+	 * @param address 格式 host:port
+	 * @return BackendConnectionPool
+	 */
+	protected BackendConnectionPool createRealPool(String address, @SuppressWarnings("rawtypes") Authenticator authenticator){
+		BusBackendConnectionFactory nioFactory = new BusBackendConnectionFactory();
+		if(authenticator != null){
+			nioFactory.setAuthenticator(authenticator);
+		}
+		BackendConnectionPool pool = null;
+		String temp[] = StringUtil.split(address,":");
+		if(temp.length>1){
+			nioFactory.setHost(temp[0]);
+			nioFactory.setPort(Integer.valueOf(temp[1]));
+		}else{
+			nioFactory.setHost(temp[0]);
+			nioFactory.setPort(PacketConstant.VENUS_DEFAULT_PORT);
+		}
 		
+		nioFactory.setConnector(this.getConnector());
+		nioFactory.setMessageHandler(getMessageHandler());
+		
+		pool = new PollingBackendConnectionPool(address,nioFactory,defaultPoolSize);
+		pool.init();
+		realPoolMap.put(address, pool);
 		return pool;
 	}
 	
@@ -291,58 +289,17 @@ public abstract class AbstractServiceRemoteManager implements ServiceRemoteManag
 			}
 		}
 	}
-	protected Map<String,List<Tuple<Range, BackendConnectionPool>>> load() throws Exception{
-		HsbVenusConfig all = getHsbVenusConfig();
-		
-		Map<String,BackendConnectionPool> poolMap = initRemoteMap(all.getRemoteMap());
-		
-		Map<String,List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String,List<Tuple<Range, BackendConnectionPool>>>();
-		
-		
-		//	create objectPool
-		for(Map.Entry<String, RemoteServiceConfig> entry: all.getServiceMap().entrySet()){
-			RemoteServiceConfig config = entry.getValue();
-			BackendConnectionPool pool = null;
-			if(!StringUtil.isEmpty(config.getRemote())){
-				pool = poolMap.get(config.getRemote());
-				if(pool == null){
-					throw new ConfigurationException("service="+config.getServiceName()+",remote not found:"+config.getRemote());
-				}
-			}else{
-				String ipAddress = config.getIpAddressList();
-				if(!StringUtil.isEmpty(ipAddress)){
-					pool =	createPoolFromAddressList(config.getIpAddressList());
-				}else{
-					throw new ConfigurationException("Service or ipAddressList or remote can not be null:"+config.getServiceName());
-				}
-			}
-			
-			try{
-				Tuple<Range,BackendConnectionPool> tuple = new Tuple<Range,BackendConnectionPool>();
-				tuple.left = getVersionRange(config.getVersion());
-				if(tuple.left == null){
-					tuple.left = new DefaultRange();
-				}
-				tuple.right = pool;
-				
-				List<Tuple<Range, BackendConnectionPool>> list = serviceMap.get(config.getServiceName());
-				if(list == null){
-					list = new ArrayList<Tuple<Range, BackendConnectionPool>>();
-					serviceMap.put(config.getServiceName(), list);
-				}
-				list.add(tuple);
-				
-			}catch(Exception e){
-				throw new ConfigurationException("init remote service config error:",e);
-			}
-		}
-		return serviceMap;
-			
-	}
 	
-	protected abstract HsbVenusConfig getHsbVenusConfig();
-	
-	private static Range getVersionRange(String version){
+	/**
+	 * 
+	 * 装载配置
+	 * @return
+	 * Map 结构 ,Key 为 ServiceName, Value 为 List, List的Element则为 Tuple,Left为 服务的版本, Right为虚拟或者实际连接池
+	 * @throws Exception
+	 */
+	protected abstract Map<String,List<Tuple<Range, BackendConnectionPool>>> load() throws Exception;
+			
+	public static Range getVersionRange(String version){
 		Range versionRange = null;
 		if(!StringUtil.isEmpty(version)){
 			version = version.trim();
@@ -359,7 +316,7 @@ public abstract class AbstractServiceRemoteManager implements ServiceRemoteManag
 			}
 			return versionRange;
 		}else{
-			return null;
+			return new DefaultRange();
 		}
 	}
 

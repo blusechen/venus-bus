@@ -8,15 +8,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.meidusa.venus.bus.handler.ClientConnectionObserver;
-import com.meidusa.venus.bus.handler.HsbBackendMessageHandler;
-import com.meidusa.venus.client.net.VenusBackendConnection;
+import com.meidusa.venus.bus.handler.BusBackendMessageHandler;
+import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.utils.Bits;
 
-public class HsbBackendConnection extends VenusBackendConnection {
+/**
+ * 负责Bus后端连接
+ * @author structchen
+ *
+ */
+public class BusBackendConnection extends VenusBackendConnection {
 	private AtomicLong requestSeq = new AtomicLong();
 	private final Map<Long,byte[]> unCompeleted = new ConcurrentHashMap<Long,byte[]>();
 	
-	public HsbBackendConnection(SocketChannel channel) {
+	public BusBackendConnection(SocketChannel channel) {
 		super(channel);
 	}
 	
@@ -45,15 +50,15 @@ public class HsbBackendConnection extends VenusBackendConnection {
 	public boolean close() {
         boolean closed = super.close();
         if (closed) {
-        	if(this.getHandler() instanceof HsbBackendMessageHandler){
-        		ClientConnectionObserver os = ((HsbBackendMessageHandler)this.getHandler()).getClientConnectionObserver();
+        	if(this.getHandler() instanceof BusBackendMessageHandler){
+        		ClientConnectionObserver os = ((BusBackendMessageHandler)this.getHandler()).getClientConnectionObserver();
         		
         		Iterator<Entry<Long,byte[]>> it =unCompeleted.entrySet().iterator();
         		while(it.hasNext()){
         			Entry<Long,byte[]> item = it.next();
         			long frontendConnID = Bits.getLong(item.getValue(), 0);
         			long frontendRequestID = Bits.getLong(item.getValue(), 8);
-        			HsbFrontendConnection conn = (HsbFrontendConnection)os.getConnection(frontendConnID);
+        			BusFrontendConnection conn = (BusFrontendConnection)os.getConnection(frontendConnID);
         			conn.retryRequestById(frontendRequestID);
         		}
         		

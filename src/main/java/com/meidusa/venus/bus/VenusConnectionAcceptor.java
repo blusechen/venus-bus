@@ -6,18 +6,13 @@ import com.meidusa.toolkit.net.ConnectionAcceptor;
 import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.toolkit.net.ConnectionObserver;
 
+/**
+ * Venus 特定的 Acceptor,增加 Observer
+ * @author structchen
+ *
+ */
 public class VenusConnectionAcceptor extends ConnectionAcceptor {
 	private ConnectionObserver observer;
-	private int processorSize = Runtime.getRuntime().availableProcessors();
-
-	public int getProcessorSize() {
-		return processorSize;
-	}
-
-
-	public void setProcessorSize(int processorSize) {
-		this.processorSize = processorSize;
-	}
 	
 	public ConnectionObserver getObserver() {
 		return observer;
@@ -28,13 +23,7 @@ public class VenusConnectionAcceptor extends ConnectionAcceptor {
 	}
 
 	public void initProcessors() throws IOException {
-		if(processors == null){
-        	processors = new ConnectionManager[processorSize];
-        	for(int i=0;i<processors.length;i++){
-        		processors[i] = new ConnectionManager(this.getName()+"-Manager-"+i,getExecutorSize());
-        		processors[i].start();
-        	}
-        }
+		super.initProcessors();
 		if (observer != null) {
 			for (int i = 0; i < processors.length; i++) {
 				processors[i].addConnectionObserver(observer);

@@ -3,10 +3,15 @@ package com.meidusa.venus.bus.network;
 import java.nio.channels.SocketChannel;
 
 import com.meidusa.toolkit.net.FrontendConnection;
-import com.meidusa.venus.backend.network.VenusFrontendConnectionFactory;
 import com.meidusa.venus.bus.handler.RetryMessageHandler;
+import com.meidusa.venus.io.network.VenusFrontendConnectionFactory;
 
-public class HsbFrontendConnectionFactory extends
+/**
+ * Bus前端连接工厂
+ * @author structchen
+ *
+ */
+public class BusFrontendConnectionFactory extends
 		VenusFrontendConnectionFactory {
 
 	private RetryMessageHandler retry;
@@ -20,7 +25,7 @@ public class HsbFrontendConnectionFactory extends
 	}
 
 	protected FrontendConnection getConnection(SocketChannel channel) {
-		HsbFrontendConnection conn = new HsbFrontendConnection(channel);
+		BusFrontendConnection conn = new BusFrontendConnection(channel);
 		conn.setRequestHandler(getMessageHandler());
 		conn.setAuthenticateProvider(getAuthenticateProvider());
 		conn.setRetryHandler(retry);

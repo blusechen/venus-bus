@@ -32,37 +32,39 @@ if $noJavaHome ; then
     exit 1
 fi
 
-# 用该脚本的位置推断VENUS_HOME的路径.
+# 用该脚本的位置推断PROJECT_HOME的路径.
 CURR_DIR=`pwd`
 cd `dirname "$0"`/..
-VENUS_HOME=`pwd`
+PROJECT_HOME=`pwd`
 cd $CURR_DIR
 
-if [ -z "$VENUS_HOME" ] ; then
+if [ -z "$PROJECT_HOME" ] ; then
     echo
-    echo 错误: 必须设置环境变量“VENUS_HOME”，指向VENUS的安装路径
+    echo "error! environment variable“PROJECT_HOME”must be setted "
     echo
     exit 1
 fi
 
-if [ ! -d $VENUS_HOME'/logs' ] ; then
-    mkdir $VENUS_HOME'/logs'
-fi
 
-CLASSPATH="$VENUS_HOME/lib/classworlds-1.0.jar"
-MAIN_CLASS="org.codehaus.classworlds.Launcher"
+CLASSPATH="$PROJECT_HOME/lib/plexus-classworlds-2.4.2-HEXNOVA.jar"
+MAIN_CLASS="org.codehaus.classworlds.SignalSender"
 
 if $cygwin ; then
     JAVA_HOME=`cygpath -w "$JAVA_HOME"`
-    VENUS_HOME=`cygpath -w "$VENUS_HOME"`
+    PROJECT_HOME=`cygpath -w "$PROJECT_HOME"`
     CLASSPATH=`cygpath -p -w "$CLASSPATH"`
 fi
 
+if [ -f "$PROJECT_HOME/jvm.properties" ]; then
+. $PROJECT_HOME/jvm.properties
+fi
 
-DEFAULT_OPTS="-server -Xms256m -Xmx1024m -Xss128k"
-# DEFAULT_OPTS="$DEFAULT_OPTS -XX:+HeapDumpOnOutOfMemoryError -XX:+AggressiveOpts -XX:+UseParallelGC -XX:+UseBiasedLocking -XX:NewSize=64m"
-DEFAULT_OPTS="$DEFAULT_OPTS -Dproject.home=\"$VENUS_HOME\""
-DEFAULT_OPTS="$DEFAULT_OPTS -Dclassworlds.conf=\"$VENUS_HOME/bin/hsb.classworlds\""
 
-CMD="exec \"$JAVA_HOME/bin/java\" $DEFAULT_OPTS $OPTS -classpath \"$CLASSPATH\"  $MAIN_CLASS $@"
+DEFAULT_OPTS="$DEFAULT_OPTS -Dproject.home=\"$PROJECT_HOME\" -Dproject.name=\"$APP_NAME\"  "
+
+if [ -n "$APP_PID_PATH" ]; then
+	DEFAULT_OPTS="$DEFAULT_OPTS -Dproject.pid.path=\"$APP_PID_PATH\""
+fi
+
+CMD="exec  \"$JAVA_HOME/bin/java\"  $DEFAULT_OPTS -classpath \"$CLASSPATH\"  $MAIN_CLASS $@"
 eval $CMD

@@ -11,29 +11,30 @@
  * 	You should have received a copy of the GNU AFFERO GENERAL PUBLIC LICENSE along with this program; 
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package com.meidusa.venus.bus.config.bean;
 
-import java.util.HashMap;
-import java.util.Map;
-import com.meidusa.venus.client.xml.bean.Remote;
+package com.meidusa.venus.bus.xml.bean;
 
-public class HsbVenusConfig {
-	private Map<String,RemoteServiceConfig> serviceMap = new HashMap<String,RemoteServiceConfig>();
-	private Map<String,Remote> remoteMap = new HashMap<String,Remote>();
-	public void addService(RemoteServiceConfig config){
-		serviceMap.put(config.getServiceName(), config);
-	}
+public class FactoryConfig {
+	private String ipAddressList = "127.0.0.1:16800";
+	private int sendBufferSize = 64;
+	private int receiveBufferSize = 64;
 	
-	public void addRemote(Remote remote){
-		remoteMap.put(remote.getName(), remote);
+	public String getIpAddressList() {
+		return ipAddressList;
 	}
-
-	public Map<String, RemoteServiceConfig> getServiceMap() {
-		return serviceMap;
+	public void setIpAddressList(String ipAddressList) {
+		this.ipAddressList = ipAddressList;
 	}
-
-	public Map<String, Remote> getRemoteMap() {
-		return remoteMap;
+	public int getSendBufferSize() {
+		return sendBufferSize;
 	}
-
+	public void setSendBufferSize(int sendBufferSize) {
+		this.sendBufferSize = sendBufferSize;
+	}
+	public int getReceiveBufferSize() {
+		return receiveBufferSize;
+	}
+	public void setReceiveBufferSize(int receiveBufferSize) {
+		this.receiveBufferSize = receiveBufferSize;
+	}
 }
