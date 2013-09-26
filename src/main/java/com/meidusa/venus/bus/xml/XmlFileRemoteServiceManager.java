@@ -13,6 +13,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.digester.Digester;
 import org.apache.commons.digester.RuleSet;
 import org.apache.commons.digester.xmlrules.FromXmlRuleSet;
+import org.apache.commons.lang.StringUtils;
 
 import com.meidusa.venus.bus.config.bean.BusConfig;
 import com.meidusa.venus.bus.config.bean.RemoteServiceConfig;
@@ -56,54 +57,53 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager{
 		Map<String,BackendConnectionPool> poolMap = new HashMap<String,BackendConnectionPool>();
 		for(Map.Entry<String, Remote> entry: remots.entrySet()){
 			Remote remote = entry.getValue();
-			FactoryConfig factoryConfig = null;
-			factoryConfig = remote.getFactory();
-			
-			String ipAddress = factoryConfig != null ?factoryConfig.getIpAddressList(): factoryConfig.getIpAddressList();
-			if(!StringUtil.isEmpty(ipAddress)){
-				String ipList[] = StringUtil.split(ipAddress ,", ");
-				
-				BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
-				
-				for(int i=0;i<ipList.length;i++){
-					BusBackendConnectionFactory nioFactory = new BusBackendConnectionFactory();
-					if(realPoolMap.get(ipList[i]) != null){
-						nioPools[i] = realPoolMap.get(ipList[i]);
-						continue;
-					}
-					
-					if(factoryConfig != null){
-						BeanUtils.copyProperties(nioFactory, factoryConfig);
-					}
-					
-					String temp[] = StringUtil.split(ipList[i],":");
-					if(temp.length>1){
-						nioFactory.setHost(temp[0]);
-						nioFactory.setPort(Integer.valueOf(temp[1]));
-					}else{
-						nioFactory.setHost(temp[0]);
-						nioFactory.setPort(PacketConstant.VENUS_DEFAULT_PORT);
-					}
-					
-					if(remote.getAuthenticator() != null){
-						nioFactory.setAuthenticator(remote.getAuthenticator());
-					}
-					
-					nioFactory.setConnector(this.getConnector());
-					nioFactory.setMessageHandler(getMessageHandler());
-					
-					nioPools[i] = new PollingBackendConnectionPool(ipList[i],nioFactory,remote.getPoolSize());
-					
-					nioPools[i].init();
-				}
-				String poolName = remote.getName();
-				
-				MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(poolName,MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN,nioPools);
-				
-				nioPool.init();
-				poolMap.put(remote.getName(),nioPool);
-				
+			FactoryConfig factoryConfig = remote.getFactory();
+			if(factoryConfig == null || StringUtils.isEmpty(factoryConfig.getIpAddressList())){
+				throw new ConfigurationException("remote name="+remote.getName()+" factory config is null or ipAddress is null");
 			}
+			String ipAddress = factoryConfig.getIpAddressList();
+			String ipList[] = StringUtil.split(ipAddress ,", ");
+			
+			BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
+			
+			for(int i=0;i<ipList.length;i++){
+				BusBackendConnectionFactory nioFactory = new BusBackendConnectionFactory();
+				if(realPoolMap.get(ipList[i]) != null){
+					nioPools[i] = realPoolMap.get(ipList[i]);
+					continue;
+				}
+				
+				if(factoryConfig != null){
+					BeanUtils.copyProperties(nioFactory, factoryConfig);
+				}
+				
+				String temp[] = StringUtil.split(ipList[i],":");
+				if(temp.length>1){
+					nioFactory.setHost(temp[0]);
+					nioFactory.setPort(Integer.valueOf(temp[1]));
+				}else{
+					nioFactory.setHost(temp[0]);
+					nioFactory.setPort(PacketConstant.VENUS_DEFAULT_PORT);
+				}
+				
+				if(remote.getAuthenticator() != null){
+					nioFactory.setAuthenticator(remote.getAuthenticator());
+				}
+				
+				nioFactory.setConnector(this.getConnector());
+				nioFactory.setMessageHandler(getMessageHandler());
+				
+				nioPools[i] = new PollingBackendConnectionPool(ipList[i],nioFactory,remote.getPoolSize());
+				
+				nioPools[i].init();
+			}
+			String poolName = remote.getName();
+			
+			MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(poolName,MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN,nioPools);
+			
+			nioPool.init();
+			poolMap.put(remote.getName(),nioPool);
+				
 		}
 		
 		return poolMap;
