@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.beanutils.BeanUtils;
@@ -42,6 +46,7 @@ import com.meidusa.toolkit.common.heartbeat.HeartbeatDelayed;
 import com.meidusa.toolkit.common.heartbeat.HeartbeatManager;
 import com.meidusa.toolkit.common.heartbeat.Status;
 import com.meidusa.toolkit.common.poolable.MultipleLoadBalanceObjectPool;
+import com.meidusa.toolkit.common.poolable.ObjectPool;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.net.ConnectionConnector;
@@ -63,7 +68,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 	protected int defaultPoolSize = Remote.DEFAULT_POOL_SIZE;
 	protected BeanContext beanContext;
 	protected BeanFactory beanFactory;
-	
+	private DelayQueue<Delayed> toBeRemoved = new DelayQueue<Delayed>(); 
 	/**
 	 * factory 创建connection 之后，作为connection相关的消息处理器
 	 */
@@ -86,10 +91,11 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 	 */
 	protected Map<String,BackendConnectionPool> realPoolMap = new HashMap<String,BackendConnectionPool>();
 	
+	private Timer closeTimer = new Timer();
 	/**
-	 * 实际物理服务的连接池， key是ip:port
+	 * 虚拟连接池， key是ip:port
 	 */
-	protected List<BackendConnectionPool> virtualPoolMap = new ArrayList<BackendConnectionPool>();
+	protected Map<String,MultipleLoadBalanceBackendConnectionPool> virtualPoolMap = new HashMap<String,MultipleLoadBalanceBackendConnectionPool>();
 	
 	public ConnectionConnector getConnector() {
 		return connector;
@@ -199,27 +205,38 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 	 * @param ipList
 	 * @return
 	 */
-	protected BackendConnectionPool createVirtualPool(String ipList[],Authenticator authenticator){
-		BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
-		
-		BackendConnectionPool pool = null;
-		for(int i=0;i<ipList.length;i++){
-			if(realPoolMap.get(ipList[i]) != null){
-				nioPools[i] = realPoolMap.get(ipList[i]);
-				continue;
-			}
-			nioPools[i] = createRealPool(ipList[i],authenticator);
+	protected synchronized BackendConnectionPool createVirtualPool(String ipList[],Authenticator authenticator){
+		Arrays.sort(ipList);
+		String poolName = "Virtual-"+Arrays.toString(ipList);
+		MultipleLoadBalanceBackendConnectionPool multiPool = virtualPoolMap.get(poolName);
+		if(multiPool != null){
+			return multiPool;
 		}
 		
-		String poolName = "pool-"+Arrays.toString(ipList);
-		pool = new MultipleLoadBalanceBackendConnectionPool(poolName,MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN,nioPools);
-		pool.init();
-		virtualPoolMap.add(pool);
-		return pool;
+		BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
+		
+		for(int i=0;i<ipList.length;i++){
+			BackendConnectionPool pool = realPoolMap.get(ipList[i]);
+			if(pool != null){
+				nioPools[i] = pool;
+				continue;
+			}else{
+				pool = nioPools[i] = createRealPool(ipList[i],authenticator);
+				BackendConnectionPool old = realPoolMap.put(ipList[i], pool);
+				if(old != null){
+					closeTimer.schedule(new ClosePoolTask(old), 30 * 1000);
+				}
+			}
+		}
+		
+		multiPool = new MultipleLoadBalanceBackendConnectionPool(poolName,MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN,nioPools);
+		multiPool.init();
+		virtualPoolMap.put(poolName,multiPool);
+		return multiPool;
 	}
 	
 	/**
-	 * 创建与真实地址连接的连接池
+	 * 创建与真实地址连接的连接池,该连接池创建完成以后,需要将它放入 realPoolMap 
 	 * @param address 格式 host:port
 	 * @return BackendConnectionPool
 	 */
@@ -243,7 +260,6 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 		
 		pool = new PollingBackendConnectionPool(address,nioFactory,defaultPoolSize);
 		pool.init();
-		realPoolMap.put(address, pool);
 		return pool;
 	}
 	
@@ -290,6 +306,25 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 		}
 	}
 	
+	static class  ClosePoolTask extends TimerTask {
+		BackendConnectionPool pool;
+		public ClosePoolTask(BackendConnectionPool pool){
+			this.pool = pool;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				if(pool instanceof ObjectPool){
+					((ObjectPool) pool).close();
+				}else if(pool instanceof BackendConnectionPool){
+					((BackendConnectionPool) pool).close();
+				}
+			} catch (Exception e) {
+			}
+		}
+	}
+	
 	/**
 	 * 
 	 * 装载配置
@@ -298,5 +333,51 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 	 * @throws Exception
 	 */
 	protected abstract Map<String,List<Tuple<Range, BackendConnectionPool>>> load() throws Exception;
+	
+	protected void fixPools(){
+		
+		//修正虚拟连接池,如果该虚拟连接池在实际的服务中没有用到,则关闭
+		Iterator<Map.Entry<String,MultipleLoadBalanceBackendConnectionPool>> it = this.virtualPoolMap.entrySet().iterator();
+		
+		while(it.hasNext()){
+			BackendConnectionPool pool = it.next().getValue();
+			_LABEL:{
+				for(List<Tuple<Range,BackendConnectionPool>> slist: serviceMap.values()){
+					for(Tuple<Range,BackendConnectionPool> tuple: slist){
+						if(tuple.right == pool){
+							break _LABEL;
+						}
+					}
+				}
+				pool.close();
+				it.remove();
+			}
+		}
+		
+		//修正实际连接池,如果该连接池在实际的服务中没有用到,则关闭
+		
+		Iterator<Map.Entry<String,BackendConnectionPool>> rPools = this.realPoolMap.entrySet().iterator();
+		
+		while(rPools.hasNext()){
+			BackendConnectionPool pool = rPools.next().getValue();
+			_LABEL:{
+				for(List<Tuple<Range,BackendConnectionPool>> slist: serviceMap.values()){
+					for(Tuple<Range,BackendConnectionPool> tuple: slist){
+						if(tuple.right instanceof MultipleLoadBalanceBackendConnectionPool){
+							MultipleLoadBalanceBackendConnectionPool vPool = (MultipleLoadBalanceBackendConnectionPool)tuple.right;
+							for(BackendConnectionPool item : vPool.getObjectPools()){
+								if(item == pool){
+									break _LABEL;
+								}
+							}
+						}
+					}
+				}
+				closeTimer.schedule(new ClosePoolTask(pool), 30 * 1000);
+				rPools.remove();
+			}
+		}
+		
+	}
 			
 }

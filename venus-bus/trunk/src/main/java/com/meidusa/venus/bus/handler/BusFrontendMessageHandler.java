@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.meidusa.venus.backend.ShutdownListener;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
@@ -16,6 +17,8 @@ import com.meidusa.venus.io.packet.PongPacket;
 import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.ServicePacketBuffer;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
+import com.meidusa.venus.io.packet.VenusStatusRequestPacket;
+import com.meidusa.venus.io.packet.VenusStatusResponsePacket;
 import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.util.Range;
 import com.meidusa.toolkit.common.util.Tuple;
@@ -31,7 +34,10 @@ import com.meidusa.toolkit.util.StringUtil;
  */
 public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> {
     private static Logger logger = Logger.getLogger(BusFrontendMessageHandler.class);
-	
+    private static ShutdownListener listener = new ShutdownListener();
+	static {
+		Runtime.getRuntime().addShutdownHook(listener);
+	}
     private ServiceRemoteManager remoteManager;
     
    
@@ -65,6 +71,15 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
             case PacketConstant.PACKET_TYPE_PONG:
             	
             	break;
+            case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
+    			VenusStatusRequestPacket sr = new VenusStatusRequestPacket();
+    			sr.init(message);
+    			VenusStatusResponsePacket response = new VenusStatusResponsePacket();
+    			AbstractServicePacket.copyHead(sr, response);
+    			
+    			response.status = listener.getStatus();
+    			conn.write(response.toByteBuffer());
+    			break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:{
             	SerializeServiceRequestPacket request = null;
             	try{

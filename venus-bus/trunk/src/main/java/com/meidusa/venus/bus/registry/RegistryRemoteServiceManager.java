@@ -1,12 +1,20 @@
 package com.meidusa.venus.bus.registry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
+import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.bus.AbstractRemoteServiceManager;
 import com.meidusa.venus.client.simple.SimpleServiceFactory;
 import com.meidusa.venus.exception.VenusExceptionFactory;
@@ -21,7 +29,9 @@ import com.meidusa.venus.util.RangeUtil;
  * @author Structchen
  *
  */
+@SuppressWarnings("rawtypes")
 public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
+	private static Logger logger = LoggerFactory.getLogger(RegistryRemoteServiceManager.class);
 	
 	/**
 	 * 注册中心主机IP
@@ -39,6 +49,10 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 	private Authenticator authenticator;
 	
 	private VenusExceptionFactory  venusExceptionFactory;
+	
+	private List<ServiceDefinition> current;
+	
+	private long lastChangedTime = System.currentTimeMillis();
 	
 	public String getHost() {
 		return host;
@@ -75,13 +89,13 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 	@Override
 	protected Map<String, List<Tuple<Range, BackendConnectionPool>>> load()
 			throws Exception {
-		
+		List<MultipleLoadBalanceBackendConnectionPool> virtualPoolMap = new ArrayList<MultipleLoadBalanceBackendConnectionPool>();
 		SimpleServiceFactory factory = new SimpleServiceFactory(host,port);
 		if(authenticator != null){
 			factory.setAuthenticator(authenticator);
 		}
 		factory.setVenusExceptionFactory(venusExceptionFactory);
-		ServiceRegistry registry = factory.getService(ServiceRegistry.class);
+		final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
 		List<ServiceDefinition> list = registry.getServiceDefinitions();
 		
 		Map<String,List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String,List<Tuple<Range, BackendConnectionPool>>>();
@@ -100,7 +114,104 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 			l.add(tuple);
 		}
 		factory.destroy();
+		this.current = list;
+		new Thread(){
+			{
+				this.setDaemon(true);
+			}
+			public void run(){
+				while(true){
+						try {
+							Thread.sleep(60 * 1000);
+						} catch (InterruptedException e) {
+						}
+						try{
+						SimpleServiceFactory factory = new SimpleServiceFactory(host,port);
+						if(authenticator != null){
+							factory.setAuthenticator(authenticator);
+						}
+						factory.setVenusExceptionFactory(venusExceptionFactory);
+						final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
+						List<ServiceDefinition> list = registry.getServiceDefinitions();
+						modifier(list,current);
+						current = list;
+					}catch(Throwable e){
+						logger.info("services  scheduled update error",e);
+					}
+				}
+			}
+		}.start();
 		return serviceMap;
+	}
+	
+	
+	protected void update(ServiceDefinition newObj){
+		List<Tuple<Range, BackendConnectionPool>> list = serviceMap.get(newObj.getName());
+		if(list == null){
+			list = new ArrayList<Tuple<Range, BackendConnectionPool>>();
+			serviceMap.put(newObj.getName(), list);
+		}
+
+		String[] ips = newObj.getIpAddress().toArray(new String[]{});
+		Arrays.sort(ips);
+		
+		Range range = RangeUtil.getVersionRange(newObj.getVersionRange());
+		
+		boolean isNew = true;
+		for(Tuple<Range, BackendConnectionPool> old : list){
+			if(old.left.equals(range)){
+				BackendConnectionPool pool = this.createVirtualPool(ips, authenticator);
+				old.right = pool;
+				isNew = false;
+				logger.warn("update Service="+newObj.getName()+", new address="+ArrayUtils.toString(ips));
+				break;
+			}
+		}
+		
+		if(isNew){
+			BackendConnectionPool pool = this.createVirtualPool(ips, authenticator);
+			Tuple<Range, BackendConnectionPool> tuple = new Tuple<Range, BackendConnectionPool>(range,pool);
+			list.add(tuple);
+			logger.warn("new Service="+newObj.getName()+", version="+range+"address="+ArrayUtils.toString(ips));
+		}
+		
+	}
+	
+	protected void modifier(List<ServiceDefinition> list,List<ServiceDefinition> current){
+		
+		for(ServiceDefinition newObj :list){
+			boolean newService = true;
+			boolean newVersion = true;
+			boolean newHost = false;
+			for(ServiceDefinition old :current){
+				
+				Range newRange = RangeUtil.getVersionRange(newObj.getVersionRange());
+				
+				//判断是否存在相同的服务
+				if(StringUtil.equals(newObj.getName(),old.getName())){
+					
+					newService = false;
+					Range oldRange = RangeUtil.getVersionRange(old.getVersionRange());
+					
+					//是否存在相同的
+					if(newRange.equals(oldRange)){
+						newVersion = false;
+						if(!newObj.getIpAddress().equals(old.getIpAddress())){
+							newHost = true;
+						}else{
+							newHost = false;
+						}
+						break;
+					}
+				}
+			}
+			
+			//如果存在新服务,新版本,新的ip地址,则需要更新
+			if(newService || newVersion || newHost){
+				update(newObj);
+			}
+		}
+		fixPools();
 	}
 
 }
