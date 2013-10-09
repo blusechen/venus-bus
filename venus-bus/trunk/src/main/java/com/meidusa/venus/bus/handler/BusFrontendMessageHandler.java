@@ -2,7 +2,11 @@ package com.meidusa.venus.bus.handler;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.meidusa.venus.backend.ShutdownListener;
 import com.meidusa.venus.bus.network.BusBackendConnection;
@@ -33,7 +37,7 @@ import com.meidusa.toolkit.util.StringUtil;
  *
  */
 public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> {
-    private static Logger logger = Logger.getLogger(BusFrontendMessageHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(BusFrontendMessageHandler.class);
     private static ShutdownListener listener = new ShutdownListener();
 	static {
 		Runtime.getRuntime().addShutdownHook(listener);

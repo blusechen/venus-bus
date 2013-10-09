@@ -6,7 +6,11 @@ import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
@@ -28,7 +32,7 @@ import com.meidusa.venus.util.Range;
  *
  */
 public class RetryMessageHandler {
-	private static Logger logger = Logger.getLogger(BusFrontendMessageHandler.class);
+	private static Logger logger = LoggerFactory.getLogger(BusFrontendMessageHandler.class);
 	private static final int MAX_RETRY_TIMES = 3; 
 	private int maxRetryTimes = MAX_RETRY_TIMES;
 	
