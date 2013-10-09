@@ -4,16 +4,22 @@
 	<parent>
 		<artifactId>venus</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>3.0.0</version>
+		<version>3.0.1</version>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.meidusa.venus</groupId>
 	<artifactId>venus-bus</artifactId>
-	<version>3.0.0</version>
 	<packaging>jar</packaging>
 	<name>${project.artifactId} v${project.version}</name>
+	
+	<properties>
+		<project.build.sourceEncoding>GBK</project.build.sourceEncoding>
+		<project.home>.</project.home>
+		<venus.version>3.0.1</venus.version>
+	</properties>
+	
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -74,7 +80,7 @@
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
 			<artifactId>venus-common-Service</artifactId>
-			<version>3.0.0</version>
+			<version>${venus.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus</groupId>
@@ -166,8 +172,5 @@
             </plugin>
 		</plugins>
 	</build>
-	<properties>
-		<project.build.sourceEncoding>GBK</project.build.sourceEncoding>
-		<project.home>.</project.home>
-	</properties>
+	
 </project>
