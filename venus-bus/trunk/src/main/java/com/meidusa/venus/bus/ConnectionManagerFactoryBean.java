@@ -1,5 +1,7 @@
 package com.meidusa.venus.bus;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -12,7 +14,7 @@ import com.meidusa.toolkit.net.ConnectionManager;
  *
  */
 public class ConnectionManagerFactoryBean implements FactoryBean<ConnectionManager[]> ,InitializingBean {
-	
+	private static AtomicInteger index = new AtomicInteger();
 	/**
 	 * 每个 manager创建以后,默认执行线程数量
 	 */
@@ -65,7 +67,16 @@ public class ConnectionManagerFactoryBean implements FactoryBean<ConnectionManag
 
 	@Override
 	public ConnectionManager[] getObject() throws Exception {
-		return items;
+		if(singleton){
+			return items;
+		}else{
+			ConnectionManager[] items = new ConnectionManager[size];
+			for(int i=0;i<size;i++){
+				items[i] = new ConnectionManager(this.getPrefix()+"-"+index.getAndIncrement()+"-"+i, this.getExecutorSize());
+				items[i].start();
+			}
+			return items;
+		}
 	}
 
 	@Override
@@ -80,10 +91,12 @@ public class ConnectionManagerFactoryBean implements FactoryBean<ConnectionManag
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		items = new ConnectionManager[size];
-		for(int i=0;i<size;i++){
-			items[i] = new ConnectionManager(this.getPrefix()+"-"+i, this.getExecutorSize());
-			items[i].start();
+		if(singleton){
+			items = new ConnectionManager[size];
+			for(int i=0;i<size;i++){
+				items[i] = new ConnectionManager(this.getPrefix()+"-"+i, this.getExecutorSize());
+				items[i].start();
+			}
 		}
 	}
 
