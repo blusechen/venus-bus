@@ -5,8 +5,13 @@ import java.util.List;
 
 
 
+
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 
 import com.meidusa.venus.backend.ShutdownListener;
 import com.meidusa.venus.bus.network.BusBackendConnection;
@@ -36,26 +41,31 @@ import com.meidusa.toolkit.util.StringUtil;
  * @author structchen
  *
  */
-public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> {
+public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> ,BeanFactoryAware{
     private static Logger logger = LoggerFactory.getLogger(BusFrontendMessageHandler.class);
     private static ShutdownListener listener = new ShutdownListener();
 	static {
 		Runtime.getRuntime().addShutdownHook(listener);
 	}
-    private ServiceRemoteManager remoteManager;
     
-   
+	private ServiceRemoteManager remoteManager;
+    
+    private BeanFactory factory;
     
 	public ServiceRemoteManager getRemoteManager() {
 		return remoteManager;
 	}
 
-	
 	public void setRemoteManager(ServiceRemoteManager remoteManager) {
 		this.remoteManager = remoteManager;
 	}
 	
-	//Map<String,List<Tuple<Range,ObjectPool>>> serviceMap = new HashMap<String,List<Tuple<Range,ObjectPool>>>();
+	/*private ThreadLocal<ServiceRemoteManager> threadLocal = new ThreadLocal<ServiceRemoteManager>(){
+		protected ServiceRemoteManager initialValue() {
+	        return factory.getBean(ServiceRemoteManager.class);
+	    }
+	};*/
+	
 	@Override
 	public void handle(BusFrontendConnection conn, final byte[] message) {
 		int type = AbstractServicePacket.getType(message);
@@ -195,6 +205,11 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 logger.warn(buffer.toString());
 
         }
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		this.factory = beanFactory;
 	}
 
 }

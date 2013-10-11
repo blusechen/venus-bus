@@ -18,7 +18,14 @@ public class FactoryConfig {
 	private String ipAddressList = "127.0.0.1:16800";
 	private int sendBufferSize = 64;
 	private int receiveBufferSize = 64;
+	private int writeQueueCapcity = 10000;
 	
+	public int getWriteQueueCapcity() {
+		return writeQueueCapcity;
+	}
+	public void setWriteQueueCapcity(int writeQueueCapcity) {
+		this.writeQueueCapcity = writeQueueCapcity;
+	}
 	public String getIpAddressList() {
 		return ipAddressList;
 	}
