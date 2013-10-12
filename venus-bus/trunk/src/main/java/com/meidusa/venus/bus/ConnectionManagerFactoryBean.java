@@ -67,12 +67,13 @@ public class ConnectionManagerFactoryBean implements FactoryBean<ConnectionManag
 
 	@Override
 	public ConnectionManager[] getObject() throws Exception {
+		int current = index.getAndIncrement();
 		if(singleton){
 			return items;
 		}else{
 			ConnectionManager[] items = new ConnectionManager[size];
 			for(int i=0;i<size;i++){
-				items[i] = new ConnectionManager(this.getPrefix()+"-"+index.getAndIncrement()+"-"+i, this.getExecutorSize());
+				items[i] = new ConnectionManager(this.getPrefix()+"-"+current+"-"+i, this.getExecutorSize());
 				items[i].start();
 			}
 			return items;
