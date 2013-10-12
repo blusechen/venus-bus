@@ -78,7 +78,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.meidusa.venus.commons</groupId>
-			<artifactId>venus-common-Service</artifactId>
+			<artifactId>venus-common-service</artifactId>
 			<version>${venus.version}</version>
 		</dependency>
 		<dependency>
