@@ -7,6 +7,7 @@ import java.util.List;
 
 
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -32,6 +33,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.util.Range;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
+import com.meidusa.toolkit.net.ConnectionConnector;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
@@ -52,6 +54,16 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
     
     private BeanFactory factory;
     
+    private ConnectionConnector connector; 
+    
+	public ConnectionConnector getConnector() {
+		return connector;
+	}
+
+	public void setConnector(ConnectionConnector connector) {
+		this.connector = connector;
+	}
+
 	public ServiceRemoteManager getRemoteManager() {
 		return remoteManager;
 	}
@@ -95,19 +107,18 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
     			conn.write(response.toByteBuffer());
     			break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:{
-            	SerializeServiceRequestPacket request = null;
+            	ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
+            	
             	try{
             		VenusRouterPacket routerPacket = new VenusRouterPacket();
             		routerPacket.srcIP = InetAddressUtil.pack(conn.getInetAddress().getAddress());
             		routerPacket.data = message;
-            		routerPacket.connectionID = conn.getSequenceID();
+            		routerPacket.frontendConnectionID = conn.getSequenceID();
             		routerPacket.frontendRequestID = conn.getNextRequestID();
             		routerPacket.serializeType = conn.getSerializeType();
             		conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
-            		ServiceAPIPacket apiPacket = new ServiceAPIPacket();
             		try{
-	            		ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-	            		try{
+	            		/*try{
 	            			apiPacket.init(packetBuffer);
 	            		}catch(Exception e){
 	            			logger.error("decode error",e);
@@ -118,8 +129,12 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 		                	conn.write(error.toByteBuffer());
 		                	return;
 	            		}
+	            		final String apiName = apiPacket.apiName;
+	            		*/
 	            		
-		                final String apiName = apiPacket.apiName;
+	            		packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE+8);
+	            		final String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
+		                final int serviceVersion = packetBuffer.readInt();
 		                int index = apiName.lastIndexOf(".");
 		                String serviceName = apiName.substring(0, index);
 		                //String methodName = apiName.substring(index + 1);
@@ -127,6 +142,9 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 		                
 		                //service not found
 		                if(list == null || list.size() == 0){
+		                	ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+		                	packetBuffer.reset();
+		                	apiPacket.init(packetBuffer);
 		                	ErrorPacket error = new ErrorPacket();
 		                	AbstractServicePacket.copyHead(apiPacket, error);
 		                	error.errorCode = VenusExceptionCodeConstant.SERVICE_NOT_FOUND;
@@ -138,13 +156,14 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 		                
 		                for(Tuple<Range,BackendConnectionPool> tuple : list){
 		                	
-		                	if(tuple.left.contains(apiPacket.serviceVersion)){
+		                	if(tuple.left.contains(serviceVersion)){
 		                		BusBackendConnection remoteConn = null;
 		                		try{
 		                			remoteConn = (BusBackendConnection)tuple.right.borrowObject();
 		                			routerPacket.backendRequestID = remoteConn.getNextRequestID();
-		                			remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.connectionID, routerPacket.frontendRequestID);
-		                			remoteConn.write(routerPacket.toByteBuffer());
+		                			remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
+		                			
+		                			remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
 		                			return;
 		                		}catch(Exception e){
 		                			conn.getRetryHandler().addRetry(conn, routerPacket);
@@ -158,6 +177,11 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 		                }
 		                
 		                //Service version not match
+		                
+		                ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+	                	packetBuffer.reset();
+	                	apiPacket.init(packetBuffer);
+	                	
             			ErrorPacket error = new ErrorPacket();
             			AbstractServicePacket.copyHead(apiPacket, error);
 	                	error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
@@ -165,6 +189,10 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 	                	conn.write(error.toByteBuffer());
 	
             		}catch(Exception e){
+            			ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+	                	packetBuffer.reset();
+	                	apiPacket.init(packetBuffer);
+	                	
             			logger.error("decode error",e);
             			ErrorPacket error = new ErrorPacket();
             			AbstractServicePacket.copyHead(apiPacket, error);
@@ -175,16 +203,25 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
             		}
 	                
             	}catch(Exception e){
+            		ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                	packetBuffer.reset();
+                	apiPacket.init(packetBuffer);
+	                	
             		ErrorPacket error = new ErrorPacket();
-            		AbstractServicePacket.copyHead(request, error);
+            		AbstractServicePacket.copyHead(apiPacket, error);
                 	error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
                 	error.message = e.getMessage();
                 	conn.write(error.toByteBuffer());
                 	logger.error("error when invoke", e);
                 	return;
             	}catch(Error e){
+            		
+            		ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                	packetBuffer.reset();
+                	apiPacket.init(packetBuffer);
+                	
             		ErrorPacket error = new ErrorPacket();
-            		AbstractServicePacket.copyHead(request, error);
+            		AbstractServicePacket.copyHead(apiPacket, error);
                 	error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
                 	error.message = e.getMessage();
                 	conn.write(error.toByteBuffer());

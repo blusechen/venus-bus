@@ -154,7 +154,7 @@ public class RetryMessageHandler {
             			remoteConn = (BusBackendConnection)tuple.right.borrowObject();
             			long remoteRequestID = remoteConn.getNextRequestID();
             			routerPacket.backendRequestID = remoteRequestID;
-            			remoteConn.addRequest(remoteRequestID, routerPacket.connectionID, routerPacket.frontendRequestID);
+            			remoteConn.addRequest(remoteRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
             			
             			remoteConn.write(routerPacket.toByteBuffer());
             			return;
