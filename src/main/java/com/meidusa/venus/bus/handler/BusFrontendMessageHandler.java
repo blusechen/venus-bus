@@ -2,12 +2,6 @@ package com.meidusa.venus.bus.handler;
 
 import java.util.List;
 
-
-
-
-
-
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -29,7 +23,6 @@ import com.meidusa.venus.io.packet.ServicePacketBuffer;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.VenusStatusRequestPacket;
 import com.meidusa.venus.io.packet.VenusStatusResponsePacket;
-import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.util.Range;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
@@ -118,20 +111,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
             		routerPacket.serializeType = conn.getSerializeType();
             		conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
             		try{
-	            		/*try{
-	            			apiPacket.init(packetBuffer);
-	            		}catch(Exception e){
-	            			logger.error("decode error",e);
-	            			ErrorPacket error = new ErrorPacket();
-	            			AbstractServicePacket.copyHead(apiPacket, error);
-		                	error.errorCode = VenusExceptionCodeConstant.PACKET_DECODE_EXCEPTION;
-		                	error.message = "decode packet exception:"+e.getMessage();
-		                	conn.write(error.toByteBuffer());
-		                	return;
-	            		}
-	            		final String apiName = apiPacket.apiName;
-	            		*/
-	            		
 	            		packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE+8);
 	            		final String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
 		                final int serviceVersion = packetBuffer.readInt();
