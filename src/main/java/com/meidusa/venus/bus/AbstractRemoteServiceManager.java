@@ -2,7 +2,6 @@ package com.meidusa.venus.bus;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,32 +10,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
-import com.meidusa.venus.bus.config.bean.BusConfig;
-import com.meidusa.venus.bus.config.bean.RemoteServiceConfig;
-import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
-import com.meidusa.venus.bus.xml.bean.FactoryConfig;
-import com.meidusa.venus.bus.xml.bean.Remote;
-import com.meidusa.venus.io.authenticate.Authenticator;
-import com.meidusa.venus.io.packet.PacketConstant;
-import com.meidusa.venus.util.ArrayRange;
-import com.meidusa.venus.util.BetweenRange;
-import com.meidusa.venus.util.DefaultRange;
-import com.meidusa.venus.util.Range;
-import com.meidusa.venus.util.VenusBeanUtilsBean;
 import com.meidusa.toolkit.common.bean.BeanContext;
 import com.meidusa.toolkit.common.bean.BeanContextBean;
 import com.meidusa.toolkit.common.bean.config.ConfigUtil;
@@ -54,6 +37,12 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
 import com.meidusa.toolkit.net.PollingBackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
+import com.meidusa.venus.bus.network.BusBackendConnectionFactory;
+import com.meidusa.venus.bus.xml.bean.Remote;
+import com.meidusa.venus.io.authenticate.Authenticator;
+import com.meidusa.venus.io.packet.PacketConstant;
+import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.VenusBeanUtilsBean;
 
 /**
  * 服务管理器
@@ -68,7 +57,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 	protected int defaultPoolSize = Remote.DEFAULT_POOL_SIZE;
 	protected BeanContext beanContext;
 	protected BeanFactory beanFactory;
-	private DelayQueue<Delayed> toBeRemoved = new DelayQueue<Delayed>(); 
+
 	/**
 	 * factory 创建connection 之后，作为connection相关的消息处理器
 	 */

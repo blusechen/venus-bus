@@ -15,6 +15,7 @@ package com.meidusa.venus.bus.xml.bean;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import com.meidusa.venus.client.xml.bean.Remote;
 
 /**

@@ -4,12 +4,10 @@ import java.nio.channels.SocketChannel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 
 import com.meidusa.toolkit.common.bean.util.Initialisable;
 import com.meidusa.toolkit.common.bean.util.InitialisationException;
 import com.meidusa.toolkit.net.BackendConnection;
-import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
 
 /**

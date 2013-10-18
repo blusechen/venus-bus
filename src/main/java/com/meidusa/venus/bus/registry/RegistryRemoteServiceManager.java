@@ -3,7 +3,6 @@ package com.meidusa.venus.bus.registry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -52,8 +51,6 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 	
 	private List<ServiceDefinition> current;
 	
-	private long lastChangedTime = System.currentTimeMillis();
-	
 	public String getHost() {
 		return host;
 	}
@@ -89,7 +86,6 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 	@Override
 	protected Map<String, List<Tuple<Range, BackendConnectionPool>>> load()
 			throws Exception {
-		List<MultipleLoadBalanceBackendConnectionPool> virtualPoolMap = new ArrayList<MultipleLoadBalanceBackendConnectionPool>();
 		SimpleServiceFactory factory = new SimpleServiceFactory(host,port);
 		if(authenticator != null){
 			factory.setAuthenticator(authenticator);
