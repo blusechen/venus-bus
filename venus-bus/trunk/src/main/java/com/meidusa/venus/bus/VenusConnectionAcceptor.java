@@ -3,7 +3,6 @@ package com.meidusa.venus.bus;
 import java.io.IOException;
 
 import com.meidusa.toolkit.net.ConnectionAcceptor;
-import com.meidusa.toolkit.net.ConnectionManager;
 import com.meidusa.toolkit.net.ConnectionObserver;
 
 /**

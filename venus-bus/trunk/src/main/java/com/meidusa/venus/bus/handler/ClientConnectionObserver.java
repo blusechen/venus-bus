@@ -3,9 +3,9 @@ package com.meidusa.venus.bus.handler;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.toolkit.net.Connection;
 import com.meidusa.toolkit.net.ConnectionObserver;
+import com.meidusa.venus.io.network.VenusFrontendConnection;
 
 /**
  * Client Connection Ovserver
