@@ -4,9 +4,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
@@ -36,7 +33,7 @@ import com.meidusa.venus.util.Range;
  * @author structchen
  *
  */
-public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> ,BeanFactoryAware{
+public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> {
     private static Logger logger = LoggerFactory.getLogger(BusFrontendMessageHandler.class);
     private static ShutdownListener listener = new ShutdownListener();
 	static {
@@ -45,7 +42,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
     
 	private ServiceRemoteManager remoteManager;
     
-    private BeanFactory factory;
     
     private ConnectionConnector connector; 
     
@@ -221,11 +217,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 logger.warn(buffer.toString());
 
         }
-	}
-
-	@Override
-	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-		this.factory = beanFactory;
 	}
 
 }
