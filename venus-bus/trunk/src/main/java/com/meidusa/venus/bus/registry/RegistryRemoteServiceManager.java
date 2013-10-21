@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
-import com.meidusa.toolkit.net.MultipleLoadBalanceBackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.bus.AbstractRemoteServiceManager;
 import com.meidusa.venus.client.simple.SimpleServiceFactory;
