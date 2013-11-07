@@ -6,24 +6,25 @@ import com.meidusa.toolkit.common.runtime.DefaultApplication;
 
 /**
  * Æô¶¯ BUSµÄ Application
+ * 
  * @author structchen
- *
+ * 
  */
 public class ServiceBusApplication extends DefaultApplication<ServiceBusApplicationConfig> {
-	private ServiceBusApplicationConfig config = new ServiceBusApplicationConfig();
-	
-	@Override
-	public void doRun() {
-		
-	}
+    private ServiceBusApplicationConfig config = new ServiceBusApplicationConfig();
 
-	@Override
-	public ServiceBusApplicationConfig getApplicationConfig() {
-		return config;
-	}
+    @Override
+    public void doRun() {
 
-	public static void main(String[] args) {
-		System.setProperty(ApplicationConfig.PROJECT_MAINCLASS, ServiceBusApplication.class.getName());
-		Application.main(args);
-	}
+    }
+
+    @Override
+    public ServiceBusApplicationConfig getApplicationConfig() {
+        return config;
+    }
+
+    public static void main(String[] args) {
+        System.setProperty(ApplicationConfig.PROJECT_MAINCLASS, ServiceBusApplication.class.getName());
+        Application.main(args);
+    }
 }

@@ -8,9 +8,10 @@ import com.meidusa.venus.util.Range;
 
 /**
  * Service Manager Interface
+ * 
  * @author structchen
- *
+ * 
  */
 public interface ServiceRemoteManager {
-	List<Tuple<Range,BackendConnectionPool>> getRemoteList(String serviceName);
+    List<Tuple<Range, BackendConnectionPool>> getRemoteList(String serviceName);
 }

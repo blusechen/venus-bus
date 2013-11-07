@@ -8,54 +8,50 @@ import com.meidusa.toolkit.net.FrontendConnection;
 import com.meidusa.toolkit.net.authenticate.server.AuthenticateProvider;
 import com.meidusa.toolkit.net.factory.FrontendConnectionFactory;
 
-public class BusDebugFrontendConnectionFactory extends
-		FrontendConnectionFactory {
-	private String remoteHost;
-	private int remotePort;
-	private ConnectionConnector connector;
-	private AuthenticateProvider<AuthingableFrontendConnection> authenticateProvider;
-	
-	@Override
-	protected FrontendConnection getConnection(SocketChannel channel) {
-		BusDebugFrontendConnection conn = new BusDebugFrontendConnection(channel,connector,remoteHost,remotePort);
-		conn.setHandler(conn);
-		conn.setRequestHandler(conn);
-		return conn;
-	}
+public class BusDebugFrontendConnectionFactory extends FrontendConnectionFactory {
+    private String remoteHost;
+    private int remotePort;
+    private ConnectionConnector connector;
+    private AuthenticateProvider<AuthingableFrontendConnection> authenticateProvider;
 
-	
-	public AuthenticateProvider<AuthingableFrontendConnection> getAuthenticateProvider() {
-		return authenticateProvider;
-	}
+    @Override
+    protected FrontendConnection getConnection(SocketChannel channel) {
+        BusDebugFrontendConnection conn = new BusDebugFrontendConnection(channel, connector, remoteHost, remotePort);
+        conn.setHandler(conn);
+        conn.setRequestHandler(conn);
+        return conn;
+    }
 
-	public void setAuthenticateProvider(
-			AuthenticateProvider<AuthingableFrontendConnection> authenticateProvider) {
-		this.authenticateProvider = authenticateProvider;
-	}
-	
-	public String getRemoteHost() {
-		return remoteHost;
-	}
+    public AuthenticateProvider<AuthingableFrontendConnection> getAuthenticateProvider() {
+        return authenticateProvider;
+    }
 
-	public void setRemoteHost(String remoteHost) {
-		this.remoteHost = remoteHost;
-	}
+    public void setAuthenticateProvider(AuthenticateProvider<AuthingableFrontendConnection> authenticateProvider) {
+        this.authenticateProvider = authenticateProvider;
+    }
 
-	public int getRemotePort() {
-		return remotePort;
-	}
+    public String getRemoteHost() {
+        return remoteHost;
+    }
 
-	public void setRemotePort(int remotePort) {
-		this.remotePort = remotePort;
-	}
+    public void setRemoteHost(String remoteHost) {
+        this.remoteHost = remoteHost;
+    }
 
-	public ConnectionConnector getConnector() {
-		return connector;
-	}
+    public int getRemotePort() {
+        return remotePort;
+    }
 
-	public void setConnector(ConnectionConnector connector) {
-		this.connector = connector;
-	}
-	
-	
+    public void setRemotePort(int remotePort) {
+        this.remotePort = remotePort;
+    }
+
+    public ConnectionConnector getConnector() {
+        return connector;
+    }
+
+    public void setConnector(ConnectionConnector connector) {
+        this.connector = connector;
+    }
+
 }

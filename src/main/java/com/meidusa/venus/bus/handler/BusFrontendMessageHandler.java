@@ -30,46 +30,45 @@ import com.meidusa.venus.util.Range;
 
 /**
  * 前端消息处理,负责接收服务请求
+ * 
  * @author structchen
- *
+ * 
  */
 public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection> {
     private static Logger logger = LoggerFactory.getLogger(BusFrontendMessageHandler.class);
     private static ShutdownListener listener = new ShutdownListener();
-	static {
-		Runtime.getRuntime().addShutdownHook(listener);
-	}
-    
-	private ServiceRemoteManager remoteManager;
-    
-    
-    private ConnectionConnector connector; 
-    
-	public ConnectionConnector getConnector() {
-		return connector;
-	}
+    static {
+        Runtime.getRuntime().addShutdownHook(listener);
+    }
 
-	public void setConnector(ConnectionConnector connector) {
-		this.connector = connector;
-	}
+    private ServiceRemoteManager remoteManager;
 
-	public ServiceRemoteManager getRemoteManager() {
-		return remoteManager;
-	}
+    private ConnectionConnector connector;
 
-	public void setRemoteManager(ServiceRemoteManager remoteManager) {
-		this.remoteManager = remoteManager;
-	}
-	
-	/*private ThreadLocal<ServiceRemoteManager> threadLocal = new ThreadLocal<ServiceRemoteManager>(){
-		protected ServiceRemoteManager initialValue() {
-	        return factory.getBean(ServiceRemoteManager.class);
-	    }
-	};*/
-	
-	@Override
-	public void handle(BusFrontendConnection conn, final byte[] message) {
-		int type = AbstractServicePacket.getType(message);
+    public ConnectionConnector getConnector() {
+        return connector;
+    }
+
+    public void setConnector(ConnectionConnector connector) {
+        this.connector = connector;
+    }
+
+    public ServiceRemoteManager getRemoteManager() {
+        return remoteManager;
+    }
+
+    public void setRemoteManager(ServiceRemoteManager remoteManager) {
+        this.remoteManager = remoteManager;
+    }
+
+    /*
+     * private ThreadLocal<ServiceRemoteManager> threadLocal = new ThreadLocal<ServiceRemoteManager>(){ protected
+     * ServiceRemoteManager initialValue() { return factory.getBean(ServiceRemoteManager.class); } };
+     */
+
+    @Override
+    public void handle(BusFrontendConnection conn, final byte[] message) {
+        int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_PING:
                 PingPacket ping = new PingPacket();
@@ -81,133 +80,132 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                     logger.debug("receive ping packet from " + conn.getId());
                 }
                 break;
-                
-            //ignore this packet
+
+            // ignore this packet
             case PacketConstant.PACKET_TYPE_PONG:
-            	
-            	break;
-            case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
-    			VenusStatusRequestPacket sr = new VenusStatusRequestPacket();
-    			sr.init(message);
-    			VenusStatusResponsePacket response = new VenusStatusResponsePacket();
-    			AbstractServicePacket.copyHead(sr, response);
-    			
-    			response.status = listener.getStatus();
-    			conn.write(response.toByteBuffer());
-    			break;
-            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST:{
-            	ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-            	
-            	try{
-            		VenusRouterPacket routerPacket = new VenusRouterPacket();
-            		routerPacket.srcIP = InetAddressUtil.pack(conn.getInetAddress().getAddress());
-            		routerPacket.data = message;
-            		routerPacket.frontendConnectionID = conn.getSequenceID();
-            		routerPacket.frontendRequestID = conn.getNextRequestID();
-            		routerPacket.serializeType = conn.getSerializeType();
-            		conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
-            		try{
-	            		packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE+8);
-	            		final String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
-		                final int serviceVersion = packetBuffer.readInt();
-		                int index = apiName.lastIndexOf(".");
-		                String serviceName = apiName.substring(0, index);
-		                //String methodName = apiName.substring(index + 1);
-		                List<Tuple<Range,BackendConnectionPool>> list = remoteManager.getRemoteList(serviceName);
-		                
-		                //service not found
-		                if(list == null || list.size() == 0){
-		                	ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-		                	packetBuffer.reset();
-		                	apiPacket.init(packetBuffer);
-		                	ErrorPacket error = new ErrorPacket();
-		                	AbstractServicePacket.copyHead(apiPacket, error);
-		                	error.errorCode = VenusExceptionCodeConstant.SERVICE_NOT_FOUND;
-		                	error.message = "service not found :"+ serviceName;
-		                	conn.write(error.toByteBuffer());
-		                	return;
-		                }
-		                
-		                
-		                for(Tuple<Range,BackendConnectionPool> tuple : list){
-		                	
-		                	if(tuple.left.contains(serviceVersion)){
-		                		BusBackendConnection remoteConn = null;
-		                		try{
-		                			remoteConn = (BusBackendConnection)tuple.right.borrowObject();
-		                			routerPacket.backendRequestID = remoteConn.getNextRequestID();
-		                			remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
-		                			
-		                			remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
-		                			return;
-		                		}catch(Exception e){
-		                			conn.getRetryHandler().addRetry(conn, routerPacket);
-		                			return;
-		                		}finally{
-		                			if(remoteConn != null){
-		                				tuple.right.returnObject(remoteConn);
-		                			}
-		                		}
-		                	}
-		                }
-		                
-		                //Service version not match
-		                
-		                ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-	                	packetBuffer.reset();
-	                	apiPacket.init(packetBuffer);
-	                	
-            			ErrorPacket error = new ErrorPacket();
-            			AbstractServicePacket.copyHead(apiPacket, error);
-	                	error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
-	                	error.message = "Service version not match";
-	                	conn.write(error.toByteBuffer());
-	
-            		}catch(Exception e){
-            			ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-	                	packetBuffer.reset();
-	                	apiPacket.init(packetBuffer);
-	                	
-            			logger.error("decode error",e);
-            			ErrorPacket error = new ErrorPacket();
-            			AbstractServicePacket.copyHead(apiPacket, error);
-	                	error.errorCode = VenusExceptionCodeConstant.PACKET_DECODE_EXCEPTION;
-	                	error.message = "decode packet exception:"+e.getMessage();
-	                	conn.write(error.toByteBuffer());
-	                	return;
-            		}
-	                
-            	}catch(Exception e){
-            		ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-                	packetBuffer.reset();
-                	apiPacket.init(packetBuffer);
-	                	
-            		ErrorPacket error = new ErrorPacket();
-            		AbstractServicePacket.copyHead(apiPacket, error);
-                	error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
-                	error.message = e.getMessage();
-                	conn.write(error.toByteBuffer());
-                	logger.error("error when invoke", e);
-                	return;
-            	}catch(Error e){
-            		
-            		ServiceAPIPacket apiPacket = new ServiceAPIPacket();
-                	packetBuffer.reset();
-                	apiPacket.init(packetBuffer);
-                	
-            		ErrorPacket error = new ErrorPacket();
-            		AbstractServicePacket.copyHead(apiPacket, error);
-                	error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
-                	error.message = e.getMessage();
-                	conn.write(error.toByteBuffer());
-                	logger.error("error when invoke", e);
-                	return;
-            	}
+
                 break;
-        	}
+            case PacketConstant.PACKET_TYPE_VENUS_STATUS_REQUEST:
+                VenusStatusRequestPacket sr = new VenusStatusRequestPacket();
+                sr.init(message);
+                VenusStatusResponsePacket response = new VenusStatusResponsePacket();
+                AbstractServicePacket.copyHead(sr, response);
+
+                response.status = listener.getStatus();
+                conn.write(response.toByteBuffer());
+                break;
+            case PacketConstant.PACKET_TYPE_SERVICE_REQUEST: {
+                ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
+
+                try {
+                    VenusRouterPacket routerPacket = new VenusRouterPacket();
+                    routerPacket.srcIP = InetAddressUtil.pack(conn.getInetAddress().getAddress());
+                    routerPacket.data = message;
+                    routerPacket.frontendConnectionID = conn.getSequenceID();
+                    routerPacket.frontendRequestID = conn.getNextRequestID();
+                    routerPacket.serializeType = conn.getSerializeType();
+                    conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
+                    try {
+                        packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE + 8);
+                        final String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
+                        final int serviceVersion = packetBuffer.readInt();
+                        int index = apiName.lastIndexOf(".");
+                        String serviceName = apiName.substring(0, index);
+                        // String methodName = apiName.substring(index + 1);
+                        List<Tuple<Range, BackendConnectionPool>> list = remoteManager.getRemoteList(serviceName);
+
+                        // service not found
+                        if (list == null || list.size() == 0) {
+                            ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                            packetBuffer.reset();
+                            apiPacket.init(packetBuffer);
+                            ErrorPacket error = new ErrorPacket();
+                            AbstractServicePacket.copyHead(apiPacket, error);
+                            error.errorCode = VenusExceptionCodeConstant.SERVICE_NOT_FOUND;
+                            error.message = "service not found :" + serviceName;
+                            conn.write(error.toByteBuffer());
+                            return;
+                        }
+
+                        for (Tuple<Range, BackendConnectionPool> tuple : list) {
+
+                            if (tuple.left.contains(serviceVersion)) {
+                                BusBackendConnection remoteConn = null;
+                                try {
+                                    remoteConn = (BusBackendConnection) tuple.right.borrowObject();
+                                    routerPacket.backendRequestID = remoteConn.getNextRequestID();
+                                    remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
+
+                                    remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
+                                    return;
+                                } catch (Exception e) {
+                                    conn.getRetryHandler().addRetry(conn, routerPacket);
+                                    return;
+                                } finally {
+                                    if (remoteConn != null) {
+                                        tuple.right.returnObject(remoteConn);
+                                    }
+                                }
+                            }
+                        }
+
+                        // Service version not match
+
+                        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                        packetBuffer.reset();
+                        apiPacket.init(packetBuffer);
+
+                        ErrorPacket error = new ErrorPacket();
+                        AbstractServicePacket.copyHead(apiPacket, error);
+                        error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
+                        error.message = "Service version not match";
+                        conn.write(error.toByteBuffer());
+
+                    } catch (Exception e) {
+                        ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                        packetBuffer.reset();
+                        apiPacket.init(packetBuffer);
+
+                        logger.error("decode error", e);
+                        ErrorPacket error = new ErrorPacket();
+                        AbstractServicePacket.copyHead(apiPacket, error);
+                        error.errorCode = VenusExceptionCodeConstant.PACKET_DECODE_EXCEPTION;
+                        error.message = "decode packet exception:" + e.getMessage();
+                        conn.write(error.toByteBuffer());
+                        return;
+                    }
+
+                } catch (Exception e) {
+                    ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                    packetBuffer.reset();
+                    apiPacket.init(packetBuffer);
+
+                    ErrorPacket error = new ErrorPacket();
+                    AbstractServicePacket.copyHead(apiPacket, error);
+                    error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
+                    error.message = e.getMessage();
+                    conn.write(error.toByteBuffer());
+                    logger.error("error when invoke", e);
+                    return;
+                } catch (Error e) {
+
+                    ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                    packetBuffer.reset();
+                    apiPacket.init(packetBuffer);
+
+                    ErrorPacket error = new ErrorPacket();
+                    AbstractServicePacket.copyHead(apiPacket, error);
+                    error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
+                    error.message = e.getMessage();
+                    conn.write(error.toByteBuffer());
+                    logger.error("error when invoke", e);
+                    return;
+                }
+                break;
+            }
             case PacketConstant.AUTHEN_TYPE_PASSWORD:
-            	
-            	break;
+
+                break;
             default:
                 StringBuilder buffer = new StringBuilder("receive unknown type packet from ");
                 buffer.append(conn.getId()).append("\n");
@@ -217,6 +215,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 logger.warn(buffer.toString());
 
         }
-	}
+    }
 
 }

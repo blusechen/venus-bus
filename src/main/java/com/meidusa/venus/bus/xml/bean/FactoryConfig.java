@@ -15,33 +15,40 @@
 package com.meidusa.venus.bus.xml.bean;
 
 public class FactoryConfig {
-	private String ipAddressList = "127.0.0.1:16800";
-	private int sendBufferSize = 64;
-	private int receiveBufferSize = 64;
-	private int writeQueueCapcity = 10000;
-	
-	public int getWriteQueueCapcity() {
-		return writeQueueCapcity;
-	}
-	public void setWriteQueueCapcity(int writeQueueCapcity) {
-		this.writeQueueCapcity = writeQueueCapcity;
-	}
-	public String getIpAddressList() {
-		return ipAddressList;
-	}
-	public void setIpAddressList(String ipAddressList) {
-		this.ipAddressList = ipAddressList;
-	}
-	public int getSendBufferSize() {
-		return sendBufferSize;
-	}
-	public void setSendBufferSize(int sendBufferSize) {
-		this.sendBufferSize = sendBufferSize;
-	}
-	public int getReceiveBufferSize() {
-		return receiveBufferSize;
-	}
-	public void setReceiveBufferSize(int receiveBufferSize) {
-		this.receiveBufferSize = receiveBufferSize;
-	}
+    private String ipAddressList = "127.0.0.1:16800";
+    private int sendBufferSize = 64;
+    private int receiveBufferSize = 64;
+    private int writeQueueCapcity = 10000;
+
+    public int getWriteQueueCapcity() {
+        return writeQueueCapcity;
+    }
+
+    public void setWriteQueueCapcity(int writeQueueCapcity) {
+        this.writeQueueCapcity = writeQueueCapcity;
+    }
+
+    public String getIpAddressList() {
+        return ipAddressList;
+    }
+
+    public void setIpAddressList(String ipAddressList) {
+        this.ipAddressList = ipAddressList;
+    }
+
+    public int getSendBufferSize() {
+        return sendBufferSize;
+    }
+
+    public void setSendBufferSize(int sendBufferSize) {
+        this.sendBufferSize = sendBufferSize;
+    }
+
+    public int getReceiveBufferSize() {
+        return receiveBufferSize;
+    }
+
+    public void setReceiveBufferSize(int receiveBufferSize) {
+        this.receiveBufferSize = receiveBufferSize;
+    }
 }

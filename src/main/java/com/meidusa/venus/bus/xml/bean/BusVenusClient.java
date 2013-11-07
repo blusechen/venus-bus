@@ -21,25 +21,26 @@ import com.meidusa.venus.client.xml.bean.Remote;
 /**
  * 
  * @author structchen
- *
+ * 
  */
 public class BusVenusClient {
-	private Map<String,RemoteServiceConfig> serviceMap = new HashMap<String,RemoteServiceConfig>();
-	private Map<String,Remote> remoteMap = new HashMap<String,Remote>();
-	public void addService(RemoteServiceConfig config){
-		serviceMap.put(config.getServiceName(), config);
-	}
-	
-	public void addRemote(Remote remote){
-		remoteMap.put(remote.getName(), remote);
-	}
+    private Map<String, RemoteServiceConfig> serviceMap = new HashMap<String, RemoteServiceConfig>();
+    private Map<String, Remote> remoteMap = new HashMap<String, Remote>();
 
-	public Map<String, RemoteServiceConfig> getServiceMap() {
-		return serviceMap;
-	}
+    public void addService(RemoteServiceConfig config) {
+        serviceMap.put(config.getServiceName(), config);
+    }
 
-	public Map<String, Remote> getRemoteMap() {
-		return remoteMap;
-	}
+    public void addRemote(Remote remote) {
+        remoteMap.put(remote.getName(), remote);
+    }
+
+    public Map<String, RemoteServiceConfig> getServiceMap() {
+        return serviceMap;
+    }
+
+    public Map<String, Remote> getRemoteMap() {
+        return remoteMap;
+    }
 
 }

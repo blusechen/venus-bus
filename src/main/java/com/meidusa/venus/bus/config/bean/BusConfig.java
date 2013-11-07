@@ -23,25 +23,26 @@ import com.meidusa.venus.bus.xml.bean.Remote;
 /**
  * 
  * @author structchen
- *
+ * 
  */
 public class BusConfig {
-	private List<RemoteServiceConfig> services = new ArrayList<RemoteServiceConfig>();
-	private Map<String,Remote> remoteMap = new HashMap<String,Remote>();
-	public void addService(RemoteServiceConfig config){
-		services.add(config);
-	}
-	
-	public void addRemote(Remote remote){
-		remoteMap.put(remote.getName(), remote);
-	}
+    private List<RemoteServiceConfig> services = new ArrayList<RemoteServiceConfig>();
+    private Map<String, Remote> remoteMap = new HashMap<String, Remote>();
 
-	public List<RemoteServiceConfig> getServices() {
-		return services;
-	}
+    public void addService(RemoteServiceConfig config) {
+        services.add(config);
+    }
 
-	public Map<String, Remote> getRemoteMap() {
-		return remoteMap;
-	}
+    public void addRemote(Remote remote) {
+        remoteMap.put(remote.getName(), remote);
+    }
+
+    public List<RemoteServiceConfig> getServices() {
+        return services;
+    }
+
+    public Map<String, Remote> getRemoteMap() {
+        return remoteMap;
+    }
 
 }
