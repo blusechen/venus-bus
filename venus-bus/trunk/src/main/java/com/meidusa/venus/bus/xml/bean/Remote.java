@@ -16,41 +16,51 @@ package com.meidusa.venus.bus.xml.bean;
 import com.meidusa.venus.io.authenticate.Authenticator;
 
 public class Remote {
-	public final static int DEFAULT_POOL_SIZE = 8;
-	private String name;
-	private int loadbalance = 1;
-	private int poolSize = DEFAULT_POOL_SIZE;
-	private FactoryConfig factory;
-	private Authenticator authenticator;
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public FactoryConfig getFactory() {
-		return factory;
-	}
-	public void setFactory(FactoryConfig factory) {
-		this.factory = factory;
-	}
-	public Authenticator getAuthenticator() {
-		return authenticator;
-	}
-	public void setAuthenticator(Authenticator authenticator) {
-		this.authenticator = authenticator;
-	}
-	public int getLoadbalance() {
-		return loadbalance;
-	}
-	public void setLoadbalance(int loadbalance) {
-		this.loadbalance = loadbalance;
-	}
-	public int getPoolSize() {
-		return poolSize;
-	}
-	public void setPoolSize(int poolSize) {
-		this.poolSize = poolSize;
-	}
-	
+    public final static int DEFAULT_POOL_SIZE = 8;
+    private String name;
+    private int loadbalance = 1;
+    private int poolSize = DEFAULT_POOL_SIZE;
+    private FactoryConfig factory;
+    private Authenticator authenticator;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public FactoryConfig getFactory() {
+        return factory;
+    }
+
+    public void setFactory(FactoryConfig factory) {
+        this.factory = factory;
+    }
+
+    public Authenticator getAuthenticator() {
+        return authenticator;
+    }
+
+    public void setAuthenticator(Authenticator authenticator) {
+        this.authenticator = authenticator;
+    }
+
+    public int getLoadbalance() {
+        return loadbalance;
+    }
+
+    public void setLoadbalance(int loadbalance) {
+        this.loadbalance = loadbalance;
+    }
+
+    public int getPoolSize() {
+        return poolSize;
+    }
+
+    public void setPoolSize(int poolSize) {
+        this.poolSize = poolSize;
+    }
+
 }
