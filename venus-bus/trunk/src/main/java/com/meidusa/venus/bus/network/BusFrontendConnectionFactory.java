@@ -18,6 +18,10 @@ import com.meidusa.venus.io.network.VenusFrontendConnectionFactory;
  */
 public class BusFrontendConnectionFactory extends VenusFrontendConnectionFactory implements InitializingBean {
     private static Logger logger = LoggerFactory.getLogger(BusFrontendConnectionFactory.class);
+    
+    /**
+     * 
+     */
     private RetryMessageHandler retry;
 
     public RetryMessageHandler getRetry() {

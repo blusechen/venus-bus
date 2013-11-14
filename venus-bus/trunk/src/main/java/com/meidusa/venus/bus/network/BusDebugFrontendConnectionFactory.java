@@ -12,7 +12,7 @@ public class BusDebugFrontendConnectionFactory extends FrontendConnectionFactory
     private String remoteHost;
     private int remotePort;
     private ConnectionConnector connector;
-    private AuthenticateProvider<AuthingableFrontendConnection> authenticateProvider;
+    private AuthenticateProvider<AuthingableFrontendConnection,byte[]> authenticateProvider;
 
     @Override
     protected FrontendConnection getConnection(SocketChannel channel) {
@@ -22,11 +22,15 @@ public class BusDebugFrontendConnectionFactory extends FrontendConnectionFactory
         return conn;
     }
 
-    public AuthenticateProvider<AuthingableFrontendConnection> getAuthenticateProvider() {
+    /**
+     * 
+     * @return
+     */
+    public AuthenticateProvider<AuthingableFrontendConnection,byte[]> getAuthenticateProvider() {
         return authenticateProvider;
     }
 
-    public void setAuthenticateProvider(AuthenticateProvider<AuthingableFrontendConnection> authenticateProvider) {
+    public void setAuthenticateProvider(AuthenticateProvider<AuthingableFrontendConnection,byte[]> authenticateProvider) {
         this.authenticateProvider = authenticateProvider;
     }
 

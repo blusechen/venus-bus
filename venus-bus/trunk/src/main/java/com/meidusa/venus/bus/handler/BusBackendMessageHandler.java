@@ -13,7 +13,7 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
  * @author structchen
  * 
  */
-public class BusBackendMessageHandler implements MessageHandler<BusBackendConnection> {
+public class BusBackendMessageHandler implements MessageHandler<BusBackendConnection,byte[]> {
     private ClientConnectionObserver clientConnectionObserver;
 
     public ClientConnectionObserver getClientConnectionObserver() {
