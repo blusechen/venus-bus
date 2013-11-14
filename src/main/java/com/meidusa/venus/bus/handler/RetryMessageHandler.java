@@ -65,16 +65,18 @@ public class RetryMessageHandler {
         }
 
         public int compareTo(Delayed other) {
-            if (other == this) // compare zero ONLY if same object
+            if (other == this) {
                 return 0;
+            }
             DelayedObject x = (DelayedObject) other;
             long diff = nextFireTime - x.nextFireTime;
-            if (diff < 0)
+            if (diff < 0) {
                 return -1;
-            else if (diff > 0)
+            } else if (diff > 0) {
                 return 1;
-            else
+            } else {
                 return 1;
+            }
         }
 
     }
@@ -240,6 +242,7 @@ public class RetryMessageHandler {
                         }
 
                     } catch (InterruptedException e) {
+                        //ignore
                     }
                 }
             }

@@ -52,6 +52,7 @@ import com.meidusa.venus.util.VenusBeanUtilsBean;
  */
 public abstract class AbstractRemoteServiceManager implements ServiceRemoteManager, Initialisable, BeanFactoryAware {
 
+    private static final int CLOSE_DELAY = 30 * 1000;
     /**
      * 后端服务默认的连接池大小
      */
@@ -80,12 +81,14 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
      */
     protected Map<String, BackendConnectionPool> realPoolMap = new HashMap<String, BackendConnectionPool>();
 
-    private Timer closeTimer = new Timer();
+    
     /**
      * 虚拟连接池， key是ip:port
      */
     protected Map<String, MultipleLoadBalanceBackendConnectionPool> virtualPoolMap = new HashMap<String, MultipleLoadBalanceBackendConnectionPool>();
 
+    private Timer closeTimer = new Timer();
+    
     public ConnectionConnector getConnector() {
         return connector;
     }
@@ -202,7 +205,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
             return multiPool;
         }
 
-        BackendConnectionPool nioPools[] = new PollingBackendConnectionPool[ipList.length];
+        BackendConnectionPool[] nioPools = new PollingBackendConnectionPool[ipList.length];
 
         for (int i = 0; i < ipList.length; i++) {
             BackendConnectionPool pool = realPoolMap.get(ipList[i]);
@@ -210,10 +213,11 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
                 nioPools[i] = pool;
                 continue;
             } else {
-                pool = nioPools[i] = createRealPool(ipList[i], authenticator);
+                pool = createRealPool(ipList[i], authenticator);
+                nioPools[i] = pool; 
                 BackendConnectionPool old = realPoolMap.put(ipList[i], pool);
                 if (old != null) {
-                    closeTimer.schedule(new ClosePoolTask(old), 30 * 1000);
+                    closeTimer.schedule(new ClosePoolTask(old), CLOSE_DELAY);
                 }
             }
         }
@@ -236,7 +240,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
             nioFactory.setAuthenticator(authenticator);
         }
         BackendConnectionPool pool = null;
-        String temp[] = StringUtil.split(address, ":");
+        String[] temp = StringUtil.split(address, ":");
         if (temp.length > 1) {
             nioFactory.setHost(temp[0]);
             nioFactory.setPort(Integer.valueOf(temp[1]));
@@ -287,10 +291,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 
                         });
                     } else {
-                        try {
-                            tuple.right.close();
-                        } catch (Exception e) {
-                        }
+                        tuple.right.close();
                     }
                 }
             }
@@ -306,14 +307,16 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 
         @Override
         public void run() {
-            try {
-                if (pool instanceof ObjectPool) {
+            if (pool instanceof ObjectPool) {
+                try {
                     ((ObjectPool) pool).close();
-                } else if (pool instanceof BackendConnectionPool) {
-                    ((BackendConnectionPool) pool).close();
+                } catch (Exception e) {
+                    //ignore
                 }
-            } catch (Exception e) {
+            } else if (pool instanceof BackendConnectionPool) {
+                ((BackendConnectionPool) pool).close();
             }
+            
         }
     }
 
@@ -365,7 +368,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
                         }
                     }
                 }
-                closeTimer.schedule(new ClosePoolTask(pool), 30 * 1000);
+                closeTimer.schedule(new ClosePoolTask(pool), CLOSE_DELAY);
                 rPools.remove();
             }
         }

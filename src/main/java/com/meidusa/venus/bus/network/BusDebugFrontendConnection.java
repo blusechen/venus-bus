@@ -11,7 +11,13 @@ import com.meidusa.toolkit.net.buffer.BufferQueue;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 
-public class BusDebugFrontendConnection extends VenusFrontendConnection implements MessageHandler {
+/**
+ * 
+ * @author structchen
+ *
+ */
+public class BusDebugFrontendConnection extends VenusFrontendConnection implements MessageHandler<Connection,byte[]> {
+    private static final int QUEUE_CAPCITY = 10;
     private VenusBackendConnection backendConn;
     private String remoteHost;
     private int remotePort;
@@ -51,13 +57,14 @@ public class BusDebugFrontendConnection extends VenusFrontendConnection implemen
 
         backendConn = new VenusBackendConnection(serChannel);
         backendConn.setHandler(this);
-        backendConn.setWriteQueue(new BufferQueue(10));
+        backendConn.setWriteQueue(new BufferQueue(QUEUE_CAPCITY));
         backendConn.setHost(remoteHost);
         backendConn.setPort(remotePort);
         backendConn.setResponseMessageHandler(this);
         this.connector.postConnect(backendConn);
     }
 
+    @Override
     public boolean close() {
         if (super.close()) {
             backendConn.close();

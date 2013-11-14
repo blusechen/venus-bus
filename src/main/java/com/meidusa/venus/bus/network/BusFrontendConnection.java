@@ -17,12 +17,11 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
 public class BusFrontendConnection extends VenusFrontendConnection {
     private long requestSeq = 0L;
     private RetryMessageHandler retryHandler;
+    private Map<Long, VenusRouterPacket> unCompleted = new HashMap<Long, VenusRouterPacket>();
 
     public BusFrontendConnection(SocketChannel channel) {
         super(channel);
     }
-
-    private Map<Long, VenusRouterPacket> unCompleted = new HashMap<Long, VenusRouterPacket>(16);
 
     public void addUnCompleted(long requestId, VenusRouterPacket data) {
         unCompleted.put(requestId, data);

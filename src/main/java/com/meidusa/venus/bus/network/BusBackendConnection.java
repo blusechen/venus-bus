@@ -26,6 +26,10 @@ public class BusBackendConnection extends VenusBackendConnection {
         super(channel);
     }
 
+    /**
+     * 
+     * @return  
+     */
     public long getNextRequestID() {
         return requestSeq.getAndIncrement();
     }
