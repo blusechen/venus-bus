@@ -173,8 +173,15 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 
     }
 
+    /**
+     * 
+     * @param list
+     * @param current
+     */
     protected void modifier(List<ServiceDefinition> list, List<ServiceDefinition> current) {
-
+        if(list == null){
+            return;
+        }
         for (ServiceDefinition newObj : list) {
             boolean newService = true;
             boolean newVersion = true;
