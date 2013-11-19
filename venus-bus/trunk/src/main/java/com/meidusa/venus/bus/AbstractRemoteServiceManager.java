@@ -45,7 +45,7 @@ import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.VenusBeanUtilsBean;
 
 /**
- * ·şÎñ¹ÜÀíÆ÷
+ * æœåŠ¡ç®¡ç†å™¨
  * 
  * @author structchen
  * 
@@ -54,19 +54,19 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 
     private static final int CLOSE_DELAY = 30 * 1000;
     /**
-     * ºó¶Ë·şÎñÄ¬ÈÏµÄÁ¬½Ó³Ø´óĞ¡
+     * åç«¯æœåŠ¡é»˜è®¤çš„è¿æ¥æ± å¤§å°
      */
     protected int defaultPoolSize = Remote.DEFAULT_POOL_SIZE;
     protected BeanContext beanContext;
     protected BeanFactory beanFactory;
 
     /**
-     * factory ´´½¨connection Ö®ºó£¬×÷ÎªconnectionÏà¹ØµÄÏûÏ¢´¦ÀíÆ÷
+     * factory åˆ›å»ºconnection ä¹‹åï¼Œä½œä¸ºconnectionç›¸å…³çš„æ¶ˆæ¯å¤„ç†å™¨
      */
     protected MessageHandler messageHandler;
 
     /**
-     * ´æ·Å ºó¶ËµÄ·şÎñÁ¬½Ó³Ø key=service Name
+     * å­˜æ”¾ åç«¯çš„æœåŠ¡è¿æ¥æ±  key=service Name
      * 
      */
     protected Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
@@ -77,13 +77,13 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
     protected ConnectionConnector connector;
 
     /**
-     * Êµ¼ÊÎïÀí·şÎñµÄÁ¬½Ó³Ø£¬ keyÊÇip:port
+     * å®é™…ç‰©ç†æœåŠ¡çš„è¿æ¥æ± ï¼Œ keyæ˜¯ip:port
      */
     protected Map<String, BackendConnectionPool> realPoolMap = new HashMap<String, BackendConnectionPool>();
 
     
     /**
-     * ĞéÄâÁ¬½Ó³Ø£¬ keyÊÇip:port
+     * è™šæ‹Ÿè¿æ¥æ± ï¼Œ keyæ˜¯ip:port
      */
     protected Map<String, MultipleLoadBalanceBackendConnectionPool> virtualPoolMap = new HashMap<String, MultipleLoadBalanceBackendConnectionPool>();
 
@@ -123,7 +123,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
     }
 
     /**
-     * ³õÊ¼»¯ service manager
+     * åˆå§‹åŒ– service manager
      */
     public void init() throws InitialisationException {
         beanContext = new BeanContext() {
@@ -192,7 +192,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
     }
 
     /**
-     * ´´½¨¶à¸öÕæÊµµØÖ·Á¬½ÓµÄĞéÄâÁ¬½Ó³Ø
+     * åˆ›å»ºå¤šä¸ªçœŸå®åœ°å€è¿æ¥çš„è™šæ‹Ÿè¿æ¥æ± 
      * 
      * @param ipList
      * @return
@@ -229,9 +229,9 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
     }
 
     /**
-     * ´´½¨ÓëÕæÊµµØÖ·Á¬½ÓµÄÁ¬½Ó³Ø,¸ÃÁ¬½Ó³Ø´´½¨Íê³ÉÒÔºó,ĞèÒª½«Ëü·ÅÈë realPoolMap
+     * åˆ›å»ºä¸çœŸå®åœ°å€è¿æ¥çš„è¿æ¥æ± ,è¯¥è¿æ¥æ± åˆ›å»ºå®Œæˆä»¥å,éœ€è¦å°†å®ƒæ”¾å…¥ realPoolMap
      * 
-     * @param address ¸ñÊ½ host:port
+     * @param address æ ¼å¼ host:port
      * @return BackendConnectionPool
      */
     protected BackendConnectionPool createRealPool(String address, @SuppressWarnings("rawtypes") Authenticator authenticator) {
@@ -322,16 +322,16 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
 
     /**
      * 
-     * ×°ÔØÅäÖÃ
+     * è£…è½½é…ç½®
      * 
-     * @return Map ½á¹¹ ,Key Îª ServiceName, Value Îª List, ListµÄElementÔòÎª Tuple,LeftÎª ·şÎñµÄ°æ±¾, RightÎªĞéÄâ»òÕßÊµ¼ÊÁ¬½Ó³Ø
+     * @return Map ç»“æ„ ,Key ä¸º ServiceName, Value ä¸º List, Listçš„Elementåˆ™ä¸º Tuple,Leftä¸º æœåŠ¡çš„ç‰ˆæœ¬, Rightä¸ºè™šæ‹Ÿæˆ–è€…å®é™…è¿æ¥æ± 
      * @throws Exception
      */
     protected abstract Map<String, List<Tuple<Range, BackendConnectionPool>>> load() throws Exception;
 
     protected void fixPools() {
 
-        // ĞŞÕıĞéÄâÁ¬½Ó³Ø,Èç¹û¸ÃĞéÄâÁ¬½Ó³ØÔÚÊµ¼ÊµÄ·şÎñÖĞÃ»ÓĞÓÃµ½,Ôò¹Ø±Õ
+        // ä¿®æ­£è™šæ‹Ÿè¿æ¥æ± ,å¦‚æœè¯¥è™šæ‹Ÿè¿æ¥æ± åœ¨å®é™…çš„æœåŠ¡ä¸­æ²¡æœ‰ç”¨åˆ°,åˆ™å…³é—­
         Iterator<Map.Entry<String, MultipleLoadBalanceBackendConnectionPool>> it = this.virtualPoolMap.entrySet().iterator();
 
         while (it.hasNext()) {
@@ -349,7 +349,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
             }
         }
 
-        // ĞŞÕıÊµ¼ÊÁ¬½Ó³Ø,Èç¹û¸ÃÁ¬½Ó³ØÔÚÊµ¼ÊµÄ·şÎñÖĞÃ»ÓĞÓÃµ½,Ôò¹Ø±Õ
+        // ä¿®æ­£å®é™…è¿æ¥æ± ,å¦‚æœè¯¥è¿æ¥æ± åœ¨å®é™…çš„æœåŠ¡ä¸­æ²¡æœ‰ç”¨åˆ°,åˆ™å…³é—­
 
         Iterator<Map.Entry<String, BackendConnectionPool>> rPools = this.realPoolMap.entrySet().iterator();
 

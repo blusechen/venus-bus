@@ -11,7 +11,7 @@ import com.meidusa.toolkit.net.BackendConnection;
 import com.meidusa.venus.io.network.VenusBackendConnectionFactory;
 
 /**
- * 后端连接工厂
+ * 鍚庣杩炴帴宸ュ巶
  * 
  * @author structchen
  * 

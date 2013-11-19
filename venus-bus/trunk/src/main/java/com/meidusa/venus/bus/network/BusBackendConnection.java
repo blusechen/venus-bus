@@ -13,7 +13,7 @@ import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.utils.Bits;
 
 /**
- * 负责Bus后端连接
+ * 璐熻矗Bus鍚庣杩炴帴
  * 
  * @author structchen
  * 

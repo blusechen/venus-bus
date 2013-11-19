@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>venus</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>3.0.4</version>
+		<version>3.0.5</version>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
@@ -16,7 +16,7 @@
 	
 	<properties>
 		<project.home>.</project.home>
-		<venus.version>3.0.4</venus.version>
+		<venus.version>3.0.5</venus.version>
 	</properties>
 	
 	<dependencies>

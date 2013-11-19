@@ -5,7 +5,7 @@ import com.meidusa.toolkit.common.runtime.ApplicationConfig;
 import com.meidusa.toolkit.common.runtime.DefaultApplication;
 
 /**
- * Æô¶¯ BUSµÄ Application
+ * å¯åŠ¨ BUSçš„ Application
  * 
  * @author structchen
  * 

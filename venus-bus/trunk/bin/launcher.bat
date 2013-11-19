@@ -1,9 +1,9 @@
 @rem ----------------------------------------------------------------------------
-@rem Æô¶¯AmoebaµÄ½Å±¾
+@rem å¯åŠ¨Amoebaçš„è„šæœ¬
 @rem
-@rem ÐèÒªÉèÖÃÈçÏÂ»·¾³±äÁ¿£º
+@rem éœ€è¦è®¾ç½®å¦‚ä¸‹çŽ¯å¢ƒå˜é‡ï¼š
 @rem
-@rem    JAVA_HOME           - JDKµÄ°²×°Â·¾¶
+@rem    JAVA_HOME           - JDKçš„å®‰è£…è·¯å¾„
 @rem
 @rem ----------------------------------------------------------------------------
 @echo off
@@ -13,7 +13,7 @@ if "%OS%"=="Windows_NT" setlocal
 if not "%JAVA_HOME%"=="" goto SET_PROJECT_HOME
 
 echo.
-echo ´íÎó: ±ØÐëÉèÖÃ»·¾³±äÁ¿¡°JAVA_HOME¡±£¬Ö¸ÏòJDKµÄ°²×°Â·¾¶
+echo é”™è¯¯: å¿…é¡»è®¾ç½®çŽ¯å¢ƒå˜é‡â€œJAVA_HOMEâ€ï¼ŒæŒ‡å‘JDKçš„å®‰è£…è·¯å¾„
 echo.
 goto END
 
@@ -22,7 +22,7 @@ set PROJECT_HOME=%~dp0..
 if not "%PROJECT_HOME%"=="" goto START_PROJECT
 
 echo.
-echo ´íÎó: ±ØÐëÉèÖÃ»·¾³±äÁ¿¡°PROJECT_HOME¡±£¬Ö¸ÏòAmoebaµÄ°²×°Â·¾¶
+echo é”™è¯¯: å¿…é¡»è®¾ç½®çŽ¯å¢ƒå˜é‡â€œPROJECT_HOMEâ€ï¼ŒæŒ‡å‘Amoebaçš„å®‰è£…è·¯å¾„
 echo.
 goto END
 

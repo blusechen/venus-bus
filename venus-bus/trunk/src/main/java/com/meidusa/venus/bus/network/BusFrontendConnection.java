@@ -9,7 +9,7 @@ import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 
 /**
- * 负责Bus前端连接
+ * 璐熻矗Bus鍓嶇杩炴帴
  * 
  * @author structchen
  * 

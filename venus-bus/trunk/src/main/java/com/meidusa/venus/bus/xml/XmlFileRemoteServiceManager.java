@@ -36,7 +36,7 @@ import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
 
 /**
- * 通过XML进行远程服务管理
+ * 閫氳繃XML杩涜杩滅▼鏈嶅姟绠＄悊
  * 
  * @author structchen
  * 

@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="GB2312"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
     <!-- ===================================================================== -->
-    <!--  以下是appender的定义                                                 -->
+    <!--  浠ヤ笅鏄痑ppender鐨勫畾涔�                                                 -->
     <!-- ===================================================================== -->
    
     <appender name="PROJECT-CONSOLE" class="org.apache.log4j.ConsoleAppender">
@@ -70,7 +70,7 @@
     </logger> -->
     
     <!-- ===================================================================== -->
-    <!--  Root logger的定义                                                    -->
+    <!--  Root logger鐨勫畾涔�                                                    -->
     <!-- ===================================================================== -->
     <root>
         <level value="debug"/>

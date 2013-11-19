@@ -23,7 +23,7 @@ import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
 
 /**
- * Í¨¹ı×¢²áÖĞĞÄ½øĞĞµÇ¼ÇµÄÔ¶³Ì·şÎñ¹ÜÀí
+ * é€šè¿‡æ³¨å†Œä¸­å¿ƒè¿›è¡Œç™»è®°çš„è¿œç¨‹æœåŠ¡ç®¡ç†
  * 
  * @author Structchen
  * 
@@ -33,17 +33,17 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
     private static Logger logger = LoggerFactory.getLogger(RegistryRemoteServiceManager.class);
 
     /**
-     * ×¢²áÖĞĞÄÖ÷»úIP
+     * æ³¨å†Œä¸­å¿ƒä¸»æœºIP
      */
     private String host;
 
     /**
-     * ×¢²áÖĞĞÄ·şÎñ¶Ë¿Ú
+     * æ³¨å†Œä¸­å¿ƒæœåŠ¡ç«¯å£
      */
     private int port;
 
     /**
-     * Óë×¢²áÖĞĞÄ²ÉÓÃµÄÈÏÖ¤·½Ê½
+     * ä¸æ³¨å†Œä¸­å¿ƒé‡‡ç”¨çš„è®¤è¯æ–¹å¼
      */
     private Authenticator authenticator;
 
@@ -190,13 +190,13 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
 
                 Range newRange = RangeUtil.getVersionRange(newObj.getVersionRange());
 
-                // ÅĞ¶ÏÊÇ·ñ´æÔÚÏàÍ¬µÄ·şÎñ
+                // åˆ¤æ–­æ˜¯å¦å­˜åœ¨ç›¸åŒçš„æœåŠ¡
                 if (StringUtil.equals(newObj.getName(), old.getName())) {
 
                     newService = false;
                     Range oldRange = RangeUtil.getVersionRange(old.getVersionRange());
 
-                    // ÊÇ·ñ´æÔÚÏàÍ¬µÄ
+                    // æ˜¯å¦å­˜åœ¨ç›¸åŒçš„
                     if (newRange.equals(oldRange)) {
                         newVersion = false;
                         if (!newObj.getIpAddress().equals(old.getIpAddress())) {
@@ -209,7 +209,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
                 }
             }
 
-            // Èç¹û´æÔÚĞÂ·şÎñ,ĞÂ°æ±¾,ĞÂµÄipµØÖ·,ÔòĞèÒª¸üĞÂ
+            // å¦‚æœå­˜åœ¨æ–°æœåŠ¡,æ–°ç‰ˆæœ¬,æ–°çš„ipåœ°å€,åˆ™éœ€è¦æ›´æ–°
             if (newService || newVersion || newHost) {
                 update(newObj);
             }
