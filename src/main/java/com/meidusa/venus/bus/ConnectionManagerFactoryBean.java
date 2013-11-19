@@ -8,7 +8,7 @@ import org.springframework.beans.factory.InitializingBean;
 import com.meidusa.toolkit.net.ConnectionManager;
 
 /**
- * Spring factory bean,×÷ÎªConnection ManagerµÄ¹¤³§,Ã¿¸ö manager Ä¬ÈÏµÄÖ´ĞĞÏß³ÌÎª CPU core ÊıÁ¿
+ * Spring factory bean,ä½œä¸ºConnection Managerçš„å·¥å‚,æ¯ä¸ª manager é»˜è®¤çš„æ‰§è¡Œçº¿ç¨‹ä¸º CPU core æ•°é‡
  * 
  * @author structchen
  * 
@@ -16,24 +16,24 @@ import com.meidusa.toolkit.net.ConnectionManager;
 public class ConnectionManagerFactoryBean implements FactoryBean<ConnectionManager[]>, InitializingBean {
     private static AtomicInteger index = new AtomicInteger();
     /**
-     * Ã¿¸ö manager´´½¨ÒÔºó,Ä¬ÈÏÖ´ĞĞÏß³ÌÊıÁ¿
+     * æ¯ä¸ª manageråˆ›å»ºä»¥å,é»˜è®¤æ‰§è¡Œçº¿ç¨‹æ•°é‡
      */
     private int executorSize = Runtime.getRuntime().availableProcessors();
 
     /**
-     * ManagerµÄÃû³ÆÇ°×º
+     * Managerçš„åç§°å‰ç¼€
      */
     private String prefix = "Manager";
 
     /**
-     * ´´½¨¶àÉÙ¸öManager,Ä¬ÈÏÎªCPU CoreÊıÁ¿
+     * åˆ›å»ºå¤šå°‘ä¸ªManager,é»˜è®¤ä¸ºCPU Coreæ•°é‡
      */
     private int size = Runtime.getRuntime().availableProcessors();
 
     private ConnectionManager[] items;
 
     /**
-     * ÊÇ·ñÊÇµ¥Àı
+     * æ˜¯å¦æ˜¯å•ä¾‹
      */
     private boolean singleton = true;
 

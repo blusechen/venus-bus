@@ -3,19 +3,19 @@
 #-------------------------------------------------------------------
 #    Venus Bootstrap Script 
 #
-#    ĞèÒªÉèÖÃÈçÏÂ»·¾³±äÁ¿£º
+#    éœ€è¦è®¾ç½®å¦‚ä¸‹ç¯å¢ƒå˜é‡ï¼š
 #
-#      JAVA_HOME           - JDKµÄ°²×°Â·¾¶
+#      JAVA_HOME           - JDKçš„å®‰è£…è·¯å¾„
 #
 #-------------------------------------------------------------------
 
-# ÅĞ¶ÏÊÇ·ñÔÚcygwin»·¾³ÏÂ
+# åˆ¤æ–­æ˜¯å¦åœ¨cygwinç¯å¢ƒä¸‹
 cygwin=false;
 case "`uname`" in
   CYGWIN*) cygwin=true ;;
 esac
 
-# È·¶¨°²×°ÁËjava£¬²¢ÉèÖÃÁËJAVA_HOME»·¾³±äÁ¿.
+# ç¡®å®šå®‰è£…äº†javaï¼Œå¹¶è®¾ç½®äº†JAVA_HOMEç¯å¢ƒå˜é‡.
 noJavaHome=false
 if [ -z "$JAVA_HOME" ] ; then
     noJavaHome=true
@@ -32,7 +32,7 @@ if $noJavaHome ; then
     exit 1
 fi
 
-# ÓÃ¸Ã½Å±¾µÄÎ»ÖÃÍÆ¶ÏPROJECT_HOMEµÄÂ·¾¶.
+# ç”¨è¯¥è„šæœ¬çš„ä½ç½®æ¨æ–­PROJECT_HOMEçš„è·¯å¾„.
 CURR_DIR=`pwd`
 cd `dirname "$0"`/..
 PROJECT_HOME=`pwd`
@@ -40,7 +40,7 @@ cd $CURR_DIR
 
 if [ -z "$PROJECT_HOME" ] ; then
     echo
-    echo "error, environment variable¡°PROJECT_HOME¡±not found "
+    echo "error, environment variableâ€œPROJECT_HOMEâ€not found "
     echo
     exit 1
 fi

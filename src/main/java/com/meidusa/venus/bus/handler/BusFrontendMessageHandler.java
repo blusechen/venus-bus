@@ -29,7 +29,7 @@ import com.meidusa.venus.io.packet.VenusStatusResponsePacket;
 import com.meidusa.venus.util.Range;
 
 /**
- * 前端消息处理,负责接收服务请求
+ * 鍓嶇娑堟伅澶勭悊,璐熻矗鎺ユ敹鏈嶅姟璇锋眰
  * 
  * @author structchen
  * 

@@ -24,7 +24,7 @@ import com.meidusa.venus.io.packet.serialize.SerializeServiceRequestPacket;
 import com.meidusa.venus.util.Range;
 
 /**
- * ÏûÏ¢ÖØÊÔ´¦Àí,ÖîÈç:ºó¶Ë·şÎñ²»¿ÉÓÃµÄ Ê±ºò,½«ÓĞÄ¬ÈÏ3´Î³¢ÊÔÇëÇó.Ã¿´Î¼ä¸ô1ÃëµÄ»úÖÆ,ÖØĞÂ¶ÔĞéÄâÁ¬½Ó³Ø·¢ÆğÇëÇó,Èç¹û¶¼Ê§°Ü½«·µ»ØÒì³£Êı¾İ°ü¸ø¿Í»§¶Ë.
+ * æ¶ˆæ¯é‡è¯•å¤„ç†,è¯¸å¦‚:åç«¯æœåŠ¡ä¸å¯ç”¨çš„ æ—¶å€™,å°†æœ‰é»˜è®¤3æ¬¡å°è¯•è¯·æ±‚.æ¯æ¬¡é—´éš”1ç§’çš„æœºåˆ¶,é‡æ–°å¯¹è™šæ‹Ÿè¿æ¥æ± å‘èµ·è¯·æ±‚,å¦‚æœéƒ½å¤±è´¥å°†è¿”å›å¼‚å¸¸æ•°æ®åŒ…ç»™å®¢æˆ·ç«¯.
  * 
  * @author structchen
  * 
@@ -35,7 +35,7 @@ public class RetryMessageHandler {
     private int maxRetryTimes = MAX_RETRY_TIMES;
 
     /**
-     * ÑÓ³Ù¶ÔÏó½Ó¿Ú
+     * å»¶è¿Ÿå¯¹è±¡æ¥å£
      * 
      * @author structchen
      * 
@@ -82,7 +82,7 @@ public class RetryMessageHandler {
     }
 
     /**
-     * Â·ÓÉÏûÏ¢µÄÑÓ³Ù¶ÓÁĞ¶ÔÏóÊµÏÖ
+     * è·¯ç”±æ¶ˆæ¯çš„å»¶è¿Ÿé˜Ÿåˆ—å¯¹è±¡å®ç°
      * 
      * @author structchen
      * 
@@ -101,7 +101,7 @@ public class RetryMessageHandler {
     }
 
     /**
-     * ´æ·ÅÖØÊÔÏûÏ¢µÄ¶ÓÁĞ
+     * å­˜æ”¾é‡è¯•æ¶ˆæ¯çš„é˜Ÿåˆ—
      */
     private BlockingQueue<DelayedRouterMessage> retryQueue = new DelayQueue<DelayedRouterMessage>();
 
@@ -151,7 +151,7 @@ public class RetryMessageHandler {
             for (Tuple<Range, BackendConnectionPool> tuple : list) {
 
                 /**
-                 * ¼ì²â°æ±¾ÊÇ·ñ¼æÈİ
+                 * æ£€æµ‹ç‰ˆæœ¬æ˜¯å¦å…¼å®¹
                  */
                 if (tuple.left.contains(apiPacket.serviceVersion)) {
                     BusBackendConnection remoteConn = null;
@@ -194,7 +194,7 @@ public class RetryMessageHandler {
             conn.write(error.toByteBuffer());
 
         } catch (Throwable e) {
-            // Óöµ½ÎÊÌâÔò·µ»Ø´íÎóÊı¾İ°ü
+            // é‡åˆ°é—®é¢˜åˆ™è¿”å›é”™è¯¯æ•°æ®åŒ…
             ErrorPacket error = new ErrorPacket();
             AbstractServicePacket.copyHead(request, error);
             error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
@@ -206,7 +206,7 @@ public class RetryMessageHandler {
     }
 
     /**
-     * Ôö¼ÓÒ»¸öÖØÊÔÂ·ÓÉÊı¾İ°ü
+     * å¢åŠ ä¸€ä¸ªé‡è¯•è·¯ç”±æ•°æ®åŒ…
      * 
      * @param conn
      * @param data
@@ -219,7 +219,7 @@ public class RetryMessageHandler {
 
     public void init() {
         /**
-         * ²ÉÓÃÒ»¸öÏß³ÌÀ´¸ºÔğ´¦ÀíÖØĞÂ¶ÓÁĞ
+         * é‡‡ç”¨ä¸€ä¸ªçº¿ç¨‹æ¥è´Ÿè´£å¤„ç†é‡æ–°é˜Ÿåˆ—
          */
         new Thread() {
             {

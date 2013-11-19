@@ -8,7 +8,7 @@ import com.meidusa.venus.io.packet.AbstractVenusPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 
 /**
- * ºó¶Ë·şÎñµÄ ÏûÏ¢´¦Àí
+ * åç«¯æœåŠ¡çš„ æ¶ˆæ¯å¤„ç†
  * 
  * @author structchen
  * 

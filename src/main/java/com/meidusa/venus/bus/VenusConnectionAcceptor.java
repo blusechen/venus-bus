@@ -6,7 +6,7 @@ import com.meidusa.toolkit.net.ConnectionAcceptor;
 import com.meidusa.toolkit.net.ConnectionObserver;
 
 /**
- * Venus ÌØ¶¨µÄ Acceptor,Ôö¼Ó Observer
+ * Venus ç‰¹å®šçš„ Acceptor,å¢žåŠ  Observer
  * 
  * @author structchen
  * 

@@ -11,7 +11,7 @@ import com.meidusa.venus.bus.handler.RetryMessageHandler;
 import com.meidusa.venus.io.network.VenusFrontendConnectionFactory;
 
 /**
- * Bus前端连接工厂
+ * Bus鍓嶇杩炴帴宸ュ巶
  * 
  * @author structchen
  * 

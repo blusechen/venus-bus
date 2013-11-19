@@ -8,7 +8,7 @@ import com.meidusa.toolkit.net.ConnectionObserver;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 
 /**
- * Client Connection Ovserver ¹Û²ìÁ¬½Ó´´½¨,¹Ø±ÕÒÔ¼°Òì³£
+ * Client Connection Ovserver è§‚å¯Ÿè¿æ¥åˆ›å»º,å…³é—­ä»¥åŠå¼‚å¸¸
  * 
  * @author structchen
  * 
@@ -38,7 +38,7 @@ public class ClientConnectionObserver implements ConnectionObserver {
     }
 
     /**
-     * ¸ù¾İ SequenceID »ñµÃÒ»¸ö Á¬½Ó
+     * æ ¹æ® SequenceID è·å¾—ä¸€ä¸ª è¿æ¥
      * 
      * @param id
      * @return
