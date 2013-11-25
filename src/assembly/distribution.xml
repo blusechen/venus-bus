@@ -50,6 +50,7 @@
 				<include>application.properties</include>
 				<include>jvm.properties</include>
 			</includes>
+			<lineEnding>unix</lineEnding>
 			<outputDirectory>.</outputDirectory>
 		</fileSet>
 	</fileSets>
