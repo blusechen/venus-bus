@@ -14,9 +14,9 @@ import com.meidusa.venus.io.network.VenusFrontendConnection;
 /**
  * 
  * @author structchen
- *
+ * 
  */
-public class BusDebugFrontendConnection extends VenusFrontendConnection implements MessageHandler<Connection,byte[]> {
+public class BusDebugFrontendConnection extends VenusFrontendConnection implements MessageHandler<Connection, byte[]> {
     private static final int QUEUE_CAPCITY = 10;
     private VenusBackendConnection backendConn;
     private String remoteHost;

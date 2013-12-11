@@ -13,7 +13,7 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
  * @author structchen
  * 
  */
-public class BusBackendMessageHandler implements MessageHandler<BusBackendConnection,byte[]> {
+public class BusBackendMessageHandler implements MessageHandler<BusBackendConnection, byte[]> {
     private ClientConnectionObserver clientConnectionObserver;
 
     public ClientConnectionObserver getClientConnectionObserver() {
@@ -29,7 +29,8 @@ public class BusBackendMessageHandler implements MessageHandler<BusBackendConnec
         int type = AbstractServicePacket.getType(message);
         if (type == AbstractVenusPacket.PACKET_TYPE_ROUTER) {
 
-            BusFrontendConnection clientConn = (BusFrontendConnection) clientConnectionObserver.getConnection(VenusRouterPacket.getConnectionSequenceID(message));
+            BusFrontendConnection clientConn = (BusFrontendConnection) clientConnectionObserver.getConnection(VenusRouterPacket
+                    .getConnectionSequenceID(message));
             conn.removeRequest(VenusRouterPacket.getRemoteRequestID(message));
             byte[] response = VenusRouterPacket.getData(message);
             if (clientConn != null) {

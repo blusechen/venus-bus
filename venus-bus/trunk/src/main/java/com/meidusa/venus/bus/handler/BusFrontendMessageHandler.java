@@ -34,7 +34,7 @@ import com.meidusa.venus.util.Range;
  * @author structchen
  * 
  */
-public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection,byte[]> {
+public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection, byte[]> {
     private static Logger logger = LoggerFactory.getLogger(BusFrontendMessageHandler.class);
     private static ShutdownListener listener = new ShutdownListener();
     static {

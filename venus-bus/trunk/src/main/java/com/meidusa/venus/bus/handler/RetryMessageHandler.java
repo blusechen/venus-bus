@@ -242,7 +242,7 @@ public class RetryMessageHandler {
                         }
 
                     } catch (InterruptedException e) {
-                        //ignore
+                        // ignore
                     }
                 }
             }
