@@ -120,7 +120,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
                     try {
                         Thread.sleep(60 * 1000);
                     } catch (InterruptedException e) {
-                        //ignore
+                        // ignore
                     }
                     try {
                         SimpleServiceFactory factory = new SimpleServiceFactory(host, port);
@@ -179,7 +179,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
      * @param current
      */
     protected void modifier(List<ServiceDefinition> list, List<ServiceDefinition> current) {
-        if(list == null){
+        if (list == null) {
             return;
         }
         for (ServiceDefinition newObj : list) {

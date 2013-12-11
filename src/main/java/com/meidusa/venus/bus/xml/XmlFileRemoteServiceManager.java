@@ -99,7 +99,8 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
             }
             String poolName = remote.getName();
 
-            MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(poolName, MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN, nioPools);
+            MultipleLoadBalanceBackendConnectionPool nioPool = new MultipleLoadBalanceBackendConnectionPool(poolName,
+                    MultipleLoadBalanceObjectPool.LOADBALANCING_ROUNDROBIN, nioPools);
 
             nioPool.init();
             poolMap.put(remote.getName(), nioPool);

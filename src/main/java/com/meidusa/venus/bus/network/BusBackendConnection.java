@@ -28,7 +28,7 @@ public class BusBackendConnection extends VenusBackendConnection {
 
     /**
      * 
-     * @return  
+     * @return
      */
     public long getNextRequestID() {
         return requestSeq.getAndIncrement();

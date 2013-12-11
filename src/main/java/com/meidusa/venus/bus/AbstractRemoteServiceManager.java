@@ -81,14 +81,13 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
      */
     protected Map<String, BackendConnectionPool> realPoolMap = new HashMap<String, BackendConnectionPool>();
 
-    
     /**
      * 虚拟连接池， key是ip:port
      */
     protected Map<String, MultipleLoadBalanceBackendConnectionPool> virtualPoolMap = new HashMap<String, MultipleLoadBalanceBackendConnectionPool>();
 
     private Timer closeTimer = new Timer();
-    
+
     public ConnectionConnector getConnector() {
         return connector;
     }
@@ -214,7 +213,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
                 continue;
             } else {
                 pool = createRealPool(ipList[i], authenticator);
-                nioPools[i] = pool; 
+                nioPools[i] = pool;
                 BackendConnectionPool old = realPoolMap.put(ipList[i], pool);
                 if (old != null) {
                     closeTimer.schedule(new ClosePoolTask(old), CLOSE_DELAY);
@@ -311,12 +310,12 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
                 try {
                     ((ObjectPool) pool).close();
                 } catch (Exception e) {
-                    //ignore
+                    // ignore
                 }
             } else if (pool instanceof BackendConnectionPool) {
                 ((BackendConnectionPool) pool).close();
             }
-            
+
         }
     }
 
