@@ -60,7 +60,7 @@
 		<property name="clientConnectionObserver" ref="clientConnectionObserver"/>
 	</bean>
 	
-	<bean id="authenticateProvider" class="com.meidusa.venus.backend.authenticate.SimpleAuthenticateProvider">
+	<bean id="authenticateProvider" class="com.meidusa.venus.bus.authenticate.SimpleAuthenticateProvider">
     	<property name="useDummy" value="true"/>
     	<property name="username" value="venus"/>
     	<property name="password" value="venus"/>
