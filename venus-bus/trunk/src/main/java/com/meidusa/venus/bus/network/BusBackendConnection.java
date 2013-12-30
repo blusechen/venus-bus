@@ -25,7 +25,7 @@ public class BusBackendConnection extends VenusBackendConnection {
     public BusBackendConnection(SocketChannel channel) {
         super(channel);
     }
-
+    
     /**
      * 
      * @return

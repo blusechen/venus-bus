@@ -29,7 +29,7 @@ public class BusBackendConnectionFactory extends VenusBackendConnectionFactory i
          */
         return c;
     }
-
+    
     @Override
     public void init() throws InitialisationException {
         logger.info("backend socket receiveBuffer=" + this.getReceiveBufferSize() + "K, sentBuffer=" + this.getSendBufferSize() + "K");

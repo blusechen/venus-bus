@@ -22,7 +22,7 @@ public class BusFrontendConnection extends VenusFrontendConnection {
     public BusFrontendConnection(SocketChannel channel) {
         super(channel);
     }
-
+    
     public void addUnCompleted(long requestId, VenusRouterPacket data) {
         unCompleted.put(requestId, data);
     }
