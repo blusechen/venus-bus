@@ -42,7 +42,7 @@ set DEFAULT_OPTS=%DEFAULT_OPTS% "-Dproject.name=VENUS_BUS"
 set DEFAULT_OPTS=%DEFAULT_OPTS% "-Dclassworlds.conf=%PROJECT_HOME%\bin\launcher.classpath"
 
 set JAVA_EXE="%JAVA_HOME%\bin\java.exe"
-set CLASSPATH="%PROJECT_HOME%\lib\plexus-classworlds-2.4.2-HEXNOVA.jar"
+set CLASSPATH="%PROJECT_HOME%\lib\plexus-classworlds-2.4.3-HEXNOVA.jar"
 set MAIN_CLASS="org.codehaus.classworlds.Launcher"
 
 %JAVA_EXE% %DEFAULT_OPTS% -classpath %CLASSPATH% %MAIN_CLASS% %*
