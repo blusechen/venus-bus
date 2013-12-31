@@ -19,7 +19,7 @@
     <bean name="connectionManagerFactoryBean" class="com.meidusa.venus.bus.ConnectionManagerFactoryBean">
     	<property name="executorSize"><value>-1</value></property>
     	<property name="singleton"><value>false</value></property>
-    	<property name="size"><value>12</value></property>
+    	<property name="size"><value>${venus.reactor.size}</value></property>
     </bean>
     
     <bean class="com.meidusa.venus.bus.VenusConnectionAcceptor" init-method="start" destroy-method="shutdown">
