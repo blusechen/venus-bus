@@ -1,10 +1,7 @@
 package com.meidusa.venus.bus.registry;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +15,7 @@ import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.bus.AbstractRemoteServiceManager;
+import com.meidusa.venus.bus.VenusConnectionAcceptor;
 import com.meidusa.venus.client.simple.SimpleServiceFactory;
 import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
@@ -37,7 +35,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
     private static Logger logger = LoggerFactory.getLogger(RegistryRemoteServiceManager.class);
     
     @Autowired
-    private ConnectionAcceptor acceptor;
+    private VenusConnectionAcceptor acceptor;
     /**
      * 注册中心主机IP
      */
@@ -56,6 +54,14 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
     private VenusExceptionFactory venusExceptionFactory;
 
     private List<ServiceDefinition> current;
+
+    public VenusConnectionAcceptor getAcceptor() {
+        return acceptor;
+    }
+
+    public void setAcceptor(VenusConnectionAcceptor acceptor) {
+        this.acceptor = acceptor;
+    }
 
     public String getHost() {
         return host;

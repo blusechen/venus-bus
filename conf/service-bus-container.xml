@@ -22,7 +22,7 @@
     	<property name="size"><value>${venus.reactor.size}</value></property>
     </bean>
     
-    <bean class="com.meidusa.venus.bus.VenusConnectionAcceptor" init-method="start" destroy-method="shutdown">
+    <bean id="acceptor" class="com.meidusa.venus.bus.VenusConnectionAcceptor" init-method="start" destroy-method="shutdown">
     	<property name="name" value="Service socket Server"/>
     	<property name="port" value="${venus.server.binding.port}"/>
     	<property name="connectionFactory" ref="busFrontendConnectionFactory"/>
