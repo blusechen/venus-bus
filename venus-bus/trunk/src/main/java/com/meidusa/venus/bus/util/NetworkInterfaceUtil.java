@@ -9,7 +9,7 @@ import java.util.List;
 
 public class NetworkInterfaceUtil {
 
-    private static List<String> lookupLocalInterface(){
+    public static List<String> lookupLocalInterface(){
         List<String> list = new ArrayList<String>();
         
         Enumeration<NetworkInterface> netInterfaces = null;  
