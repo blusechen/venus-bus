@@ -1,7 +1,10 @@
 package com.meidusa.venus.bus.registry;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
@@ -31,7 +35,9 @@ import com.meidusa.venus.util.RangeUtil;
 @SuppressWarnings("rawtypes")
 public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
     private static Logger logger = LoggerFactory.getLogger(RegistryRemoteServiceManager.class);
-
+    
+    @Autowired
+    private ConnectionAcceptor acceptor;
     /**
      * 注册中心主机IP
      */
@@ -101,12 +107,17 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
                 l = new ArrayList<Tuple<Range, BackendConnectionPool>>();
                 serviceMap.put(definition.getName(), l);
             }
-
-            String[] ips = definition.getIpAddress().toArray(new String[] {});
-            BackendConnectionPool pool = this.createVirtualPool(ips, authenticator);
-            Range range = RangeUtil.getVersionRange(definition.getVersionRange());
-            Tuple<Range, BackendConnectionPool> tuple = new Tuple<Range, BackendConnectionPool>(range, pool);
-            l.add(tuple);
+            
+            for(String ip:localAddress){
+                definition.getIpAddress().remove(ip+":"+acceptor.getPort());
+            }
+            if(definition.getIpAddress().size()>0){
+                String[] ips = definition.getIpAddress().toArray(new String[] {});
+                BackendConnectionPool pool = this.createVirtualPool(ips, authenticator);
+                Range range = RangeUtil.getVersionRange(definition.getVersionRange());
+                Tuple<Range, BackendConnectionPool> tuple = new Tuple<Range, BackendConnectionPool>(range, pool);
+                l.add(tuple);
+            }
         }
         factory.destroy();
         this.current = list;
@@ -132,6 +143,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
                         List<ServiceDefinition> list = registry.getServiceDefinitions();
                         modifier(list, current);
                         current = list;
+                        factory.destroy();
                     } catch (Throwable e) {
                         logger.info("services  scheduled update error", e);
                     }
@@ -148,6 +160,10 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
             serviceMap.put(newObj.getName(), list);
         }
 
+        for(String ip:localAddress){
+            newObj.getIpAddress().remove(ip+":"+acceptor.getPort());
+        }
+        
         String[] ips = newObj.getIpAddress().toArray(new String[] {});
         Arrays.sort(ips);
 

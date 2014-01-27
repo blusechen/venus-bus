@@ -13,7 +13,6 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
-import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -60,6 +59,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
     protected BeanContext beanContext;
     protected BeanFactory beanFactory;
 
+    protected List<String> localAddress;
     /**
      * factory 创建connection 之后，作为connection相关的消息处理器
      */
@@ -125,6 +125,7 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
      * 初始化 service manager
      */
     public void init() throws InitialisationException {
+        localAddress = NetworkInterfaceUtil.lookupLocalInterface();
         beanContext = new BeanContext() {
             public Object getBean(String beanName) {
                 if (beanFactory != null) {
