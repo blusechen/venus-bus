@@ -35,7 +35,7 @@ goto END
 @REM  )
 
 
-set DEFAULT_OPTS=-server -Xms256m -Xmx1024m -Xss196k
+set DEFAULT_OPTS=-server -Xms256m -Xmx1024m -Xss256k
 set DEFAULT_OPTS=%DEFAULT_OPTS% -XX:+HeapDumpOnOutOfMemoryError -XX:+AggressiveOpts -XX:+UseParallelGC -XX:+UseBiasedLocking -XX:NewSize=64m
 set DEFAULT_OPTS=%DEFAULT_OPTS% "-Dproject.home=%PROJECT_HOME%"
 set DEFAULT_OPTS=%DEFAULT_OPTS% "-Dproject.name=VENUS_BUS"
