@@ -1,6 +1,7 @@
 package com.meidusa.venus.bus.handler;
 
 import com.meidusa.toolkit.net.MessageHandler;
+import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
@@ -36,13 +37,10 @@ public class BusBackendMessageHandler implements MessageHandler<BusBackendConnec
             if (clientConn != null) {
                 if (clientConn.removeUnCompleted(VenusRouterPacket.getSourceRequestID(message))) {
                     clientConn.write(response);
-                }/*
-                  * else{ VenusServiceHeaderPacket packet = new VenusServiceHeaderPacket(); packet.init(response);
-                  * ErrorPacket error = new ErrorPacket(); AbstractServicePacket.copyHead(packet, error);
-                  * error.errorCode = VenusExceptionCodeConstant.SERVICE_RESPONSE_HEADER_ERROR_EXCEPTION; error.message
-                  * = "Service response header error"; clientConn.write(error.toByteBuffer()); }
-                  */
+                }
             }
+        }else if(type == AbstractVenusPacket.PACKET_TYPE_PONG){
+        	conn.setLastPong(TimeUtil.currentTimeMillis());
         }
 
     }

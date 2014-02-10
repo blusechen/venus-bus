@@ -5,6 +5,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.meidusa.toolkit.common.poolable.InvalidVirtualPoolException;
 import com.meidusa.toolkit.common.util.Tuple;
 import com.meidusa.toolkit.net.BackendConnectionPool;
 import com.meidusa.toolkit.net.ConnectionConnector;
@@ -12,6 +13,7 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
 import com.meidusa.venus.backend.ShutdownListener;
+import com.meidusa.venus.backend.VenusStatus;
 import com.meidusa.venus.bus.ServiceRemoteManager;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
@@ -61,11 +63,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
         this.remoteManager = remoteManager;
     }
 
-    /*
-     * private ThreadLocal<ServiceRemoteManager> threadLocal = new ThreadLocal<ServiceRemoteManager>(){ protected
-     * ServiceRemoteManager initialValue() { return factory.getBean(ServiceRemoteManager.class); } };
-     */
-
     @Override
     public void handle(BusFrontendConnection conn, final byte[] message) {
         int type = AbstractServicePacket.getType(message);
@@ -91,7 +88,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 VenusStatusResponsePacket response = new VenusStatusResponsePacket();
                 AbstractServicePacket.copyHead(sr, response);
 
-                response.status = listener.getStatus();
+                response.status = VenusStatus.getInstance().getStatus();
                 conn.write(response.toByteBuffer());
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST: {
@@ -104,7 +101,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                     routerPacket.frontendConnectionID = conn.getSequenceID();
                     routerPacket.frontendRequestID = conn.getNextRequestID();
                     routerPacket.serializeType = conn.getSerializeType();
-                    conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
                     try {
                         packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE + 8);
                         final String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
@@ -135,10 +131,21 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                                     remoteConn = (BusBackendConnection) tuple.right.borrowObject();
                                     routerPacket.backendRequestID = remoteConn.getNextRequestID();
                                     remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
-
+                                    conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
                                     remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
                                     return;
-                                } catch (Exception e) {
+                                } catch(InvalidVirtualPoolException e){
+                                	ServiceAPIPacket apiPacket = new ServiceAPIPacket();
+                                    packetBuffer.reset();
+                                    apiPacket.init(packetBuffer);
+                                	ErrorPacket error = new ErrorPacket();
+                                    AbstractServicePacket.copyHead(apiPacket, error);
+                                    error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
+                                    error.message = e.getMessage();
+                                    conn.write(error.toByteBuffer());
+                                    return;
+                                }catch (Exception e) {
+                                	conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
                                     conn.getRetryHandler().addRetry(conn, routerPacket);
                                     return;
                                 } finally {
