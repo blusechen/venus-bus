@@ -76,6 +76,22 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
         </encoder>
     </appender>
+    
+    <!-- 按照每天生成日志文件：VENUS跟踪日志-->
+    <appender name="VENUS-HEARTBEAT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志文件输出的文件名-->
+            <FileNamePattern>${LOG_SYS_HOME}/venus-heartbeat.log.%d{yyyy-MM-dd}</FileNamePattern>
+            <!--日志文件保留天数-->
+            <MaxHistory>${LOG_MAX_HISTORY}</MaxHistory>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- 格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    
     <!-- 按照每天生成日志文件：VENUS跟踪日志-->
     <appender name="VENUS-TRACER" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -109,6 +125,11 @@
         <level value="info"/>
         <appender-ref ref="VENUS"/>
     </logger>
+    
+    <logger name="com.meidusa.venus" additivity="false">
+        <level value="info"/>
+        <appender-ref ref="VENUS"/>
+    </logger>
 
     <logger name="com.meidusa.toolkit.net" additivity="false">
         <level value="info"/>
@@ -117,7 +138,7 @@
 
     <logger name="com.meidusa.venus.heartbeat" additivity="false">
         <level value="info"/>
-        <appender-ref ref="VENUS"/>
+        <appender-ref ref="VENUS-HEARTBEAT"/>
     </logger>
 
     <logger name="venus.backend.performance" additivity="false">
