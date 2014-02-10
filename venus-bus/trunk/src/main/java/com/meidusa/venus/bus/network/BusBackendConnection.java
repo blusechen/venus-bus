@@ -7,9 +7,14 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.handler.BusBackendMessageHandler;
 import com.meidusa.venus.bus.handler.ClientConnectionObserver;
 import com.meidusa.venus.io.network.VenusBackendConnection;
+import com.meidusa.venus.io.packet.PingPacket;
 import com.meidusa.venus.io.utils.Bits;
 
 /**
@@ -19,10 +24,29 @@ import com.meidusa.venus.io.utils.Bits;
  * 
  */
 public class BusBackendConnection extends VenusBackendConnection {
+	private static Logger logger = LoggerFactory.getLogger(BusBackendConnection.class);
     private AtomicLong requestSeq = new AtomicLong();
     private final Map<Long, byte[]> unCompeleted = new ConcurrentHashMap<Long, byte[]>();
+    private long lastPing;
+    private long lastPong;
+    private static long PING_INTERVAL = 15000;
+    public long getLastPing() {
+		return lastPing;
+	}
 
-    public BusBackendConnection(SocketChannel channel) {
+	public void setLastPing(long lastPing) {
+		this.lastPing = lastPing;
+	}
+
+	public long getLastPong() {
+		return lastPong;
+	}
+
+	public void setLastPong(long lastPong) {
+		this.lastPong = lastPong;
+	}
+
+	public BusBackendConnection(SocketChannel channel) {
         super(channel);
     }
     
@@ -46,6 +70,21 @@ public class BusBackendConnection extends VenusBackendConnection {
 
             return true;
         }
+    }
+    
+    protected void idleCheck() {
+        if (isIdleTimeout()) {
+        	logger.warn("conn="+this.host+":"+ this.port+ " ping/pong timeout="+(lastPing - lastPong)+"!");
+            close();
+        }else{
+        	PingPacket ping = new PingPacket();
+        	this.setLastPing(TimeUtil.currentTimeMillis());
+        	this.write(ping.toByteBuffer());
+        }
+    }
+    
+    public boolean isIdleTimeout() {
+        return lastPing - lastPong > PING_INTERVAL;
     }
 
     public boolean removeRequest(long requestID) {

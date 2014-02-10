@@ -111,7 +111,7 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
     }
 
     protected Map<String, List<Tuple<Range, BackendConnectionPool>>> load() throws Exception {
-        BusConfig all = getHsbVenusConfig();
+        BusConfig all = getBusConfig();
 
         Map<String, BackendConnectionPool> poolMap = initRemoteMap(all.getRemoteMap());
 
@@ -158,7 +158,11 @@ public class XmlFileRemoteServiceManager extends AbstractRemoteServiceManager {
 
     }
 
-    protected BusConfig getHsbVenusConfig() {
+    /**
+     * 
+     * @return
+     */
+    protected BusConfig getBusConfig() {
         BusConfig all = new BusConfig();
         for (String configFile : configFiles) {
             configFile = (String) ConfigUtil.filter(configFile);
