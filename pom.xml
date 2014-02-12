@@ -15,6 +15,8 @@
 	<name>${project.artifactId} v${project.version}</name>
 	
 	<properties>
+   		<timestamp>${maven.build.timestamp}</timestamp>
+   		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<project.home>.</project.home>
 		<venus.version>3.2.1</venus.version>
 	</properties>
