@@ -73,14 +73,17 @@ public class BusBackendConnection extends VenusBackendConnection {
     }
     
     protected void idleCheck() {
-        if (isIdleTimeout()) {
-        	logger.warn("conn="+this.host+":"+ this.port+ " ping/pong timeout="+(lastPing - lastPong)+"!");
-            close();
-        }else{
-        	PingPacket ping = new PingPacket();
-        	this.setLastPing(TimeUtil.currentTimeMillis());
-        	this.write(ping.toByteBuffer());
-        }
+    	//避免在认证期间发送ping数据包
+    	if(this.isAuthenticated()){
+	        if (isIdleTimeout()) {
+	        	logger.warn("conn="+this.host+":"+ this.port+ " ping/pong timeout="+(lastPing - lastPong)+"!");
+	            close();
+	        }else{
+	        	PingPacket ping = new PingPacket();
+	        	this.setLastPing(TimeUtil.currentTimeMillis());
+	        	this.write(ping.toByteBuffer());
+	        }
+    	}
     }
     
     public boolean isIdleTimeout() {

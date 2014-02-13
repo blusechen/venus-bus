@@ -272,11 +272,14 @@ public abstract class AbstractRemoteServiceManager implements ServiceRemoteManag
                     final Tuple<Range, BackendConnectionPool> tuple = item.next();
                     if (tuple.right.getActive() > 0) {
                         HeartbeatManager.addHeartbeat(new HeartbeatDelayed(5L, TimeUnit.SECONDS) {
-                            private int count = 20;
+                            //删除原来的 旧pool，经过最多20次的心跳检测
+                        	private int count = 20;
 
                             public Status doCheck() {
                                 count--;
                                 if (tuple.right.getActive() > 0 && count > 0) {
+                                	
+                                	//设置 为invalid，旨在让其继续在manager中做检测
                                     return Status.INVALID;
                                 } else {
                                     try {

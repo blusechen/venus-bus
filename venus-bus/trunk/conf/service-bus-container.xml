@@ -88,23 +88,23 @@
 		基于xml配置的服务加载方式
 	 -->
 	
-	<bean id="remoteManager" class="com.meidusa.venus.bus.xml.XmlFileRemoteServiceManager" scope="prototype" init-method="init" parent="abstractRemoteManager">
+	<!-- <bean id="remoteManager" class="com.meidusa.venus.bus.xml.XmlFileRemoteServiceManager" scope="prototype" init-method="init" parent="abstractRemoteManager">
 		<property name="configFiles">
 			<list>
 				<value>file:${project.home}/conf/venusRemoteConfig.xml</value>
 			</list>
 		</property>
-	</bean>
+	</bean> -->
 	
 	
 	<!-- 
 		基于服务注册中心的服务加载方式
 	 -->
 	
-	<!-- <bean id="remoteManager" class="com.meidusa.venus.bus.registry.RegistryRemoteServiceManager" init-method="init" parent="abstractRemoteManager">
+	<bean id="remoteManager" class="com.meidusa.venus.bus.registry.RegistryRemoteServiceManager" init-method="init" parent="abstractRemoteManager">
 		<property name="host" value="${venus.registry.host}"/>
 		<property name="port" value="${venus.registry.port}"/>
-	</bean> -->
+	</bean>
 	
     
 	<bean id="authenticator" class="com.meidusa.venus.client.authenticate.DummyAuthenticator"/>
