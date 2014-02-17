@@ -4,6 +4,7 @@ import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.AbstractVenusPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
@@ -27,6 +28,7 @@ public class BusBackendMessageHandler implements MessageHandler<BusBackendConnec
 
     @Override
     public void handle(BusBackendConnection conn, byte[] message) {
+    	VenusTrafficCollector.getInstance().addInput(message.length);
         int type = AbstractServicePacket.getType(message);
         if (type == AbstractVenusPacket.PACKET_TYPE_ROUTER) {
 

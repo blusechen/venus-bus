@@ -1,10 +1,12 @@
 package com.meidusa.venus.bus.network;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.meidusa.venus.bus.handler.RetryMessageHandler;
+import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
 
@@ -48,5 +50,10 @@ public class BusFrontendConnection extends VenusFrontendConnection {
             retryHandler.addRetry(this, unCompleted.get(requestID));
         }
     }
+    
+    public void write(ByteBuffer buffer){
+    	VenusTrafficCollector.getInstance().addOutput(buffer.remaining());
+		super.write(buffer);
+	}
 
 }

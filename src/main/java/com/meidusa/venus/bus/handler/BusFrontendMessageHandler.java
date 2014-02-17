@@ -17,6 +17,7 @@ import com.meidusa.venus.backend.VenusStatus;
 import com.meidusa.venus.bus.ServiceRemoteManager;
 import com.meidusa.venus.bus.network.BusBackendConnection;
 import com.meidusa.venus.bus.network.BusFrontendConnection;
+import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.exception.VenusExceptionCodeConstant;
 import com.meidusa.venus.io.packet.AbstractServicePacket;
 import com.meidusa.venus.io.packet.ErrorPacket;
@@ -65,6 +66,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
 
     @Override
     public void handle(BusFrontendConnection conn, final byte[] message) {
+    	VenusTrafficCollector.getInstance().addInput(message.length);
         int type = AbstractServicePacket.getType(message);
         switch (type) {
             case PacketConstant.PACKET_TYPE_PING:
@@ -93,7 +95,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST: {
                 ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
-
+                VenusTrafficCollector.getInstance().increaseRequest();
                 try {
                     VenusRouterPacket routerPacket = new VenusRouterPacket();
                     routerPacket.srcIP = InetAddressUtil.pack(conn.getInetAddress().getAddress());
