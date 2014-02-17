@@ -1,5 +1,6 @@
 package com.meidusa.venus.bus.network;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.Map;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.handler.BusBackendMessageHandler;
 import com.meidusa.venus.bus.handler.ClientConnectionObserver;
+import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.io.network.VenusBackendConnection;
 import com.meidusa.venus.io.packet.PingPacket;
 import com.meidusa.venus.io.utils.Bits;
@@ -49,6 +51,11 @@ public class BusBackendConnection extends VenusBackendConnection {
 	public BusBackendConnection(SocketChannel channel) {
         super(channel);
     }
+	
+	public void write(ByteBuffer buffer){
+		VenusTrafficCollector.getInstance().addOutput(buffer.remaining());
+		super.write(buffer);
+	}
     
     /**
      * 
