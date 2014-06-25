@@ -29,8 +29,8 @@ public class BusFrontendConnection extends VenusFrontendConnection {
         unCompleted.put(requestId, data);
     }
 
-    public boolean removeUnCompleted(long requestId) {
-        return unCompleted.remove(requestId) != null;
+    public VenusRouterPacket removeUnCompleted(long requestId) {
+        return unCompleted.remove(requestId);
     }
 
     public long getNextRequestID() {

@@ -32,5 +32,6 @@
 		<service serviceName="HelloService" version="[0,100]" remote="defaultRemote"/>
 		<service serviceName="ParameterizedService" version="{0,1}" remote="defaultRemote"/>
 		<service serviceName="ParameterizedService" version="2" remote="defaultRemote"/>
+		<service serviceName="memberInfoService" version="[0,100]" remote="defaultRemote"/>
 	</services>
 </venus-bus>

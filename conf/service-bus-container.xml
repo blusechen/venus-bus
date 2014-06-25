@@ -94,8 +94,8 @@
 				<value>file:${project.home}/conf/venusRemoteConfig.xml</value>
 			</list>
 		</property>
-	</bean> -->
-	
+	</bean>
+	 -->
 	
 	<!-- 
 		基于服务注册中心的服务加载方式

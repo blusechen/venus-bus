@@ -36,8 +36,9 @@ public class BusBackendMessageHandler implements MessageHandler<BusBackendConnec
                     .getConnectionSequenceID(message));
             conn.removeRequest(VenusRouterPacket.getRemoteRequestID(message));
             byte[] response = VenusRouterPacket.getData(message);
-            if (clientConn != null) {
-                if (clientConn.removeUnCompleted(VenusRouterPacket.getSourceRequestID(message))) {
+            if (clientConn != null && !clientConn.isClosed()) {
+            	VenusRouterPacket router = clientConn.removeUnCompleted(VenusRouterPacket.getSourceRequestID(message));
+            	if(router != null){
                     clientConn.write(response);
                 }
             }
