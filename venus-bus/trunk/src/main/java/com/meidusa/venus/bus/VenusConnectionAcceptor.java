@@ -9,8 +9,8 @@ import com.meidusa.toolkit.net.ConnectionObserver;
  * Venus 特定的 Acceptor,增加 Observer
  * 
  * @author structchen
- * 
  */
+
 public class VenusConnectionAcceptor extends ConnectionAcceptor {
     private ConnectionObserver observer;
 

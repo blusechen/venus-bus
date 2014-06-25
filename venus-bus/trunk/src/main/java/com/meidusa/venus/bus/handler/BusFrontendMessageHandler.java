@@ -12,6 +12,7 @@ import com.meidusa.toolkit.net.ConnectionConnector;
 import com.meidusa.toolkit.net.MessageHandler;
 import com.meidusa.toolkit.net.util.InetAddressUtil;
 import com.meidusa.toolkit.util.StringUtil;
+import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.backend.ShutdownListener;
 import com.meidusa.venus.backend.VenusStatus;
 import com.meidusa.venus.bus.ServiceRemoteManager;
@@ -30,6 +31,7 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.VenusStatusRequestPacket;
 import com.meidusa.venus.io.packet.VenusStatusResponsePacket;
 import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.VenusTracerUtil;
 
 /**
  * 前端消息处理,负责接收服务请求
@@ -40,6 +42,7 @@ import com.meidusa.venus.util.Range;
 public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConnection, byte[]> {
     private static Logger logger = LoggerFactory.getLogger(BusFrontendMessageHandler.class);
     private static ShutdownListener listener = new ShutdownListener();
+    private static Logger REUEST_LOGGER = LoggerFactory.getLogger("venus.tracer");
     static {
         Runtime.getRuntime().addShutdownHook(listener);
     }
@@ -65,7 +68,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
     }
 
     @Override
-    public void handle(BusFrontendConnection conn, final byte[] message) {
+    public void handle(BusFrontendConnection srcConn, final byte[] message) {
     	VenusTrafficCollector.getInstance().addInput(message.length);
         int type = AbstractServicePacket.getType(message);
         switch (type) {
@@ -74,9 +77,9 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 ping.init(message);
                 PongPacket pong = new PongPacket();
                 AbstractServicePacket.copyHead(ping, pong);
-                conn.write(pong.toByteBuffer());
+                srcConn.write(pong.toByteBuffer());
                 if (logger.isDebugEnabled()) {
-                    logger.debug("receive ping packet from " + conn.getId());
+                    logger.debug("receive ping packet from " + srcConn.getId());
                 }
                 break;
 
@@ -91,18 +94,19 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 AbstractServicePacket.copyHead(sr, response);
 
                 response.status = VenusStatus.getInstance().getStatus();
-                conn.write(response.toByteBuffer());
+                srcConn.write(response.toByteBuffer());
                 break;
             case PacketConstant.PACKET_TYPE_SERVICE_REQUEST: {
                 ServicePacketBuffer packetBuffer = new ServicePacketBuffer(message);
                 VenusTrafficCollector.getInstance().increaseRequest();
                 try {
                     VenusRouterPacket routerPacket = new VenusRouterPacket();
-                    routerPacket.srcIP = InetAddressUtil.pack(conn.getInetAddress().getAddress());
+                    routerPacket.srcIP = InetAddressUtil.pack(srcConn.getInetAddress().getAddress());
                     routerPacket.data = message;
-                    routerPacket.frontendConnectionID = conn.getSequenceID();
-                    routerPacket.frontendRequestID = conn.getNextRequestID();
-                    routerPacket.serializeType = conn.getSerializeType();
+                    routerPacket.startTime = TimeUtil.currentTimeMillis();
+                    routerPacket.frontendConnectionID = srcConn.getSequenceID();
+                    routerPacket.frontendRequestID = srcConn.getNextRequestID();
+                    routerPacket.serializeType = srcConn.getSerializeType();
                     try {
                         packetBuffer.skip(PacketConstant.SERVICE_HEADER_SIZE + 8);
                         final String apiName = packetBuffer.readLengthCodedString(PacketConstant.PACKET_CHARSET);
@@ -111,7 +115,20 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                         String serviceName = apiName.substring(0, index);
                         // String methodName = apiName.substring(index + 1);
                         List<Tuple<Range, BackendConnectionPool>> list = remoteManager.getRemoteList(serviceName);
-
+                        
+                        /**
+                         * 解析traceID
+                         * 跳过参数字节
+                         */
+                        packetBuffer.skipLengthCodedBytes();
+                        byte[] traceId = new byte[16];
+                        // 兼容3.0.1之前的版本,3.0.2与之后的版本将支持traceID
+                        if (packetBuffer.hasRemaining()) {
+                            packetBuffer.readBytes(traceId, 0, 16);
+                        } else {
+                            traceId = PacketConstant.EMPTY_TRACE_ID;
+                        }
+                        
                         // service not found
                         if (list == null || list.size() == 0) {
                             ServiceAPIPacket apiPacket = new ServiceAPIPacket();
@@ -121,20 +138,22 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                             AbstractServicePacket.copyHead(apiPacket, error);
                             error.errorCode = VenusExceptionCodeConstant.SERVICE_NOT_FOUND;
                             error.message = "service not found :" + serviceName;
-                            conn.write(error.toByteBuffer());
+                            srcConn.write(error.toByteBuffer());
                             return;
                         }
 
                         for (Tuple<Range, BackendConnectionPool> tuple : list) {
 
                             if (tuple.left.contains(serviceVersion)) {
+                            	StringBuilder builder = new StringBuilder();
                                 BusBackendConnection remoteConn = null;
                                 try {
                                     remoteConn = (BusBackendConnection) tuple.right.borrowObject();
                                     routerPacket.backendRequestID = remoteConn.getNextRequestID();
                                     remoteConn.addRequest(routerPacket.backendRequestID, routerPacket.frontendConnectionID, routerPacket.frontendRequestID);
-                                    conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
+                                    srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
                                     remoteConn.write(VenusRouterPacket.toByteBuffer(routerPacket));
+                                    VenusTracerUtil.logRouter(traceId, apiName, srcConn.getInetAddress().getHostAddress(), remoteConn.getHost()+":"+remoteConn.getPort());
                                     return;
                                 } catch(InvalidVirtualPoolException e){
                                 	ServiceAPIPacket apiPacket = new ServiceAPIPacket();
@@ -144,11 +163,11 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                                     AbstractServicePacket.copyHead(apiPacket, error);
                                     error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
                                     error.message = e.getMessage();
-                                    conn.write(error.toByteBuffer());
+                                    srcConn.write(error.toByteBuffer());
                                     return;
                                 }catch (Exception e) {
-                                	conn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
-                                    conn.getRetryHandler().addRetry(conn, routerPacket);
+                                	srcConn.addUnCompleted(routerPacket.frontendRequestID, routerPacket);
+                                    srcConn.getRetryHandler().addRetry(srcConn, routerPacket);
                                     return;
                                 } finally {
                                     if (remoteConn != null) {
@@ -168,7 +187,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                         AbstractServicePacket.copyHead(apiPacket, error);
                         error.errorCode = VenusExceptionCodeConstant.SERVICE_VERSION_NOT_ALLOWD_EXCEPTION;
                         error.message = "Service version not match";
-                        conn.write(error.toByteBuffer());
+                        srcConn.write(error.toByteBuffer());
 
                     } catch (Exception e) {
                         ServiceAPIPacket apiPacket = new ServiceAPIPacket();
@@ -180,7 +199,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                         AbstractServicePacket.copyHead(apiPacket, error);
                         error.errorCode = VenusExceptionCodeConstant.PACKET_DECODE_EXCEPTION;
                         error.message = "decode packet exception:" + e.getMessage();
-                        conn.write(error.toByteBuffer());
+                        srcConn.write(error.toByteBuffer());
                         return;
                     }
 
@@ -193,7 +212,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                     AbstractServicePacket.copyHead(apiPacket, error);
                     error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
                     error.message = e.getMessage();
-                    conn.write(error.toByteBuffer());
+                    srcConn.write(error.toByteBuffer());
                     logger.error("error when invoke", e);
                     return;
                 } catch (Error e) {
@@ -206,7 +225,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                     AbstractServicePacket.copyHead(apiPacket, error);
                     error.errorCode = VenusExceptionCodeConstant.SERVICE_UNAVAILABLE_EXCEPTION;
                     error.message = e.getMessage();
-                    conn.write(error.toByteBuffer());
+                    srcConn.write(error.toByteBuffer());
                     logger.error("error when invoke", e);
                     return;
                 }
@@ -217,7 +236,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                 break;
             default:
                 StringBuilder buffer = new StringBuilder("receive unknown type packet from ");
-                buffer.append(conn.getId()).append("\n");
+                buffer.append(srcConn.getId()).append("\n");
                 buffer.append("-------------------------------").append("\n");
                 buffer.append(StringUtil.dumpAsHex(message, message.length)).append("\n");
                 buffer.append("-------------------------------").append("\n");
