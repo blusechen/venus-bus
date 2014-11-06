@@ -3,6 +3,7 @@ package com.meidusa.venus.bus.registry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import com.meidusa.venus.exception.VenusExceptionFactory;
 import com.meidusa.venus.io.authenticate.Authenticator;
 import com.meidusa.venus.service.registry.ServiceDefinition;
 import com.meidusa.venus.service.registry.ServiceRegistry;
+import com.meidusa.venus.util.DefaultRange;
 import com.meidusa.venus.util.Range;
 import com.meidusa.venus.util.RangeUtil;
 
@@ -105,7 +107,7 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
         final ServiceRegistry registry = factory.getService(ServiceRegistry.class);
         List<ServiceDefinition> list = registry.getServiceDefinitions();
 
-        Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
+        final Map<String, List<Tuple<Range, BackendConnectionPool>>> serviceMap = new HashMap<String, List<Tuple<Range, BackendConnectionPool>>>();
 
         for (ServiceDefinition definition : list) {
             List<Tuple<Range, BackendConnectionPool>> l = serviceMap.get(definition.getName());
@@ -150,11 +152,57 @@ public class RegistryRemoteServiceManager extends AbstractRemoteServiceManager {
                         modifier(list, current);
                         current = list;
                         factory.destroy();
+                        removeUnusedConnection(list);
                     } catch (Throwable e) {
                         logger.info("services  scheduled update error", e);
                     }
                 }
             }
+
+			private void removeUnusedConnection(List<ServiceDefinition> list) {
+				if (list == null || list.size() == 0){
+					return;
+				}
+				
+				Map<String, List<Range>> serviceRangeMap = new HashMap<String, List<Range>>();
+				
+				for (ServiceDefinition sd : list){
+					List<Range> ranges = serviceRangeMap.get(sd.getName());
+					if (ranges == null){
+						ranges = new ArrayList<Range>();
+						serviceRangeMap.put(sd.getName(), ranges);
+					}
+					ranges.add(RangeUtil.getVersionRange(sd.getVersionRange()));
+				}
+				
+				Iterator<String> iter = serviceMap.keySet().iterator();
+				while(iter.hasNext()) {
+					String serviceName = iter.next();
+					List<Range> ranges = serviceRangeMap.get(serviceName);
+					List<Tuple<Range, BackendConnectionPool>> tuples = serviceMap.get(serviceName);
+					
+					for(Tuple<Range, BackendConnectionPool> tuple: tuples) {
+						if (tuple == null){
+							continue;
+						}
+						if (ranges.contains(tuple.left)){
+							continue;
+						}
+						
+						try{
+							logger.debug("close " + serviceName + (tuple.left instanceof DefaultRange ?  "无限制" : tuple.left));
+							if (!tuple.right.isClosed()){
+								tuple.right.close();
+							}
+						}catch(Exception e) {
+							logger.error("close connection pool error:" , e);
+						}
+						
+						iter.remove();
+					}
+					
+				}
+			}
         }.start();
         return serviceMap;
     }
