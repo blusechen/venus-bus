@@ -113,7 +113,9 @@ public class BusBackendConnection extends VenusBackendConnection {
                     long frontendConnID = Bits.getLong(item.getValue(), 0);
                     long frontendRequestID = Bits.getLong(item.getValue(), 8);
                     BusFrontendConnection conn = (BusFrontendConnection) os.getConnection(frontendConnID);
-                    conn.retryRequestById(frontendRequestID);
+                    if(conn != null && !conn.isClosed()){
+                    	conn.retryRequestById(frontendRequestID);
+                    }
                 }
 
             }
