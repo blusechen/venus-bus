@@ -145,7 +145,6 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                         for (Tuple<Range, BackendConnectionPool> tuple : list) {
 
                             if (tuple.left.contains(serviceVersion)) {
-                            	StringBuilder builder = new StringBuilder();
                                 BusBackendConnection remoteConn = null;
                                 try {
                                     remoteConn = (BusBackendConnection) tuple.right.borrowObject();
