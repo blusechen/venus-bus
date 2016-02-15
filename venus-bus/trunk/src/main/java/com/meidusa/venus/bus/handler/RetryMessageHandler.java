@@ -42,7 +42,7 @@ public class RetryMessageHandler {
      */
     static class DelayedObject implements Delayed {
         private long time;
-        /** Sequence number to break ties FIFO */
+
         private long nextFireTime = 0;
 
         public DelayedObject(long nsTime, TimeUnit timeUnit) {
