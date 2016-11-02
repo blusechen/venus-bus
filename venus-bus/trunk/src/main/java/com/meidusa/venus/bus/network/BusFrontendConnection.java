@@ -2,13 +2,21 @@ package com.meidusa.venus.bus.network;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.meidusa.toolkit.util.TimeUtil;
 import com.meidusa.venus.bus.handler.RetryMessageHandler;
 import com.meidusa.venus.bus.util.VenusTrafficCollector;
 import com.meidusa.venus.io.network.VenusFrontendConnection;
+import com.meidusa.venus.io.packet.ServiceAPIPacket;
 import com.meidusa.venus.io.packet.VenusRouterPacket;
+import com.meidusa.venus.util.UUID;
 
 /**
  * 负责Bus前端连接
@@ -17,6 +25,7 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
  * 
  */
 public class BusFrontendConnection extends VenusFrontendConnection {
+	final static Logger logger = LoggerFactory.getLogger("venus.backend.performance");
     private long requestSeq = 0L;
     private RetryMessageHandler retryHandler;
     private Map<Long, VenusRouterPacket> unCompleted = new HashMap<Long, VenusRouterPacket>();
@@ -56,4 +65,20 @@ public class BusFrontendConnection extends VenusFrontendConnection {
 		super.write(buffer);
 	}
 
+    public boolean close() {
+    	boolean isClosed = super.close();
+    	if(isClosed){
+    		Map<Long, VenusRouterPacket> tmp = new HashMap<Long, VenusRouterPacket>();
+    		tmp.putAll(unCompleted);
+    		unCompleted.clear();
+    		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    		for(Map.Entry<Long, VenusRouterPacket> entry: tmp.entrySet()){
+    			ServiceAPIPacket request = new ServiceAPIPacket();
+    			request.init(entry.getValue().data);
+    			long cost = (TimeUtil.currentTimeMillis()-entry.getValue().startTime);
+    			logger.error("[{}] uncompleted=true, requestId={}, traceId={}, api={}, client={}, startTime={}",cost,request.clientRequestId,new UUID(request.traceId),request.apiName,this.host,format.format(new Date(entry.getValue().startTime)));
+    		}
+    	}
+    	return isClosed;
+    }
 }

@@ -31,6 +31,7 @@ import com.meidusa.venus.io.packet.VenusRouterPacket;
 import com.meidusa.venus.io.packet.VenusStatusRequestPacket;
 import com.meidusa.venus.io.packet.VenusStatusResponsePacket;
 import com.meidusa.venus.util.Range;
+import com.meidusa.venus.util.UUID;
 import com.meidusa.venus.util.VenusTracerUtil;
 
 /**
@@ -115,6 +116,7 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                         String serviceName = apiName.substring(0, index);
                         // String methodName = apiName.substring(index + 1);
                         List<Tuple<Range, BackendConnectionPool>> list = remoteManager.getRemoteList(serviceName);
+                        routerPacket.api = apiName;
                         
                         /**
                          * 解析traceID
@@ -128,6 +130,8 @@ public class BusFrontendMessageHandler implements MessageHandler<BusFrontendConn
                         } else {
                             traceId = PacketConstant.EMPTY_TRACE_ID;
                         }
+                        
+                        routerPacket.traceId = UUID.toString(traceId);
                         
                         // service not found
                         if (list == null || list.size() == 0) {

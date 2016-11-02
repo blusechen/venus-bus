@@ -35,7 +35,10 @@ public class NetworkInterfaceUtil {
         return list;
     }
     public static void main(String[] args) {
-        lookupLocalInterface();
+       List<String> ls = lookupLocalInterface();
+       for(String s : ls){
+    	   System.out.println(s);
+       }
     }
 
 }
