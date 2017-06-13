@@ -46,7 +46,7 @@ if [ -z "$PROJECT_HOME" ] ; then
 fi
 
 
-CLASSPATH="$PROJECT_HOME/lib/plexus-classworlds-2.4.2-HEXNOVA.jar"
+CLASSPATH="$PROJECT_HOME/lib/plexus-classworlds-2.4.4-HEXNOVA.jar"
 MAIN_CLASS="org.codehaus.classworlds.SignalSender"
 
 if $cygwin ; then

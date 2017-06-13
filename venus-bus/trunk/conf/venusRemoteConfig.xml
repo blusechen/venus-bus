@@ -2,7 +2,7 @@
 
 <venus-bus>
 	<remotes>
-		<remote name="defaultRemote" poolSize="16">
+		<remote name="defaultRemote" poolSize="8">
 			<!-- 与远程连接的socket相关的配置 -->
 			<factory>
 				<!-- 支持多节点负责均衡的高可用配置，默认采用轮询  -->
