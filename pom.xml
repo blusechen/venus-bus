@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>venus</artifactId>
 		<groupId>com.meidusa.venus</groupId>
-		<version>3.2.14</version>
+		<version>3.3.1</version>
 	</parent>
 	
 	<modelVersion>4.0.0</modelVersion>
@@ -41,10 +41,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.collections</groupId>
-			<artifactId>google-collections</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>commons-beanutils</groupId>

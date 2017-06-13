@@ -146,23 +146,23 @@
     <!--============================ 按照每天生成日志文件：VENUS系统日志：默认配置 ==========================-->
 
     <logger name="com.meidusa.toolkit.net.ConnectionAcceptor" additivity="true">
-        <level value="info"/>
+        <level value="debug"/>
         <appender-ref ref="VENUS"/>
         <appender-ref ref="STDOUT"/>
     </logger>
     
     <logger name="com.meidusa.venus" additivity="false">
-        <level value="info"/>
+        <level value="debug"/>
         <appender-ref ref="VENUS"/>
     </logger>
 
     <logger name="com.meidusa.toolkit.net" additivity="false">
-        <level value="info"/>
+        <level value="debug"/>
         <appender-ref ref="VENUS"/>
     </logger>
 
 	<logger name="com.meidusa.toolkit.common.heartbeat" additivity="false">
-	 	<level value="info"/>
+	 	<level value="debug"/>
         <appender-ref ref="VENUS-HEARTBEAT"/>
 	</logger>
 
